@@ -16,7 +16,7 @@ const TrendCharts = () => {
     label: selectedYear === "all" ? `${d.month} ${d.year}` : d.month,
     "Employment Rate": d.employmentRate,
     "Unemployment Rate": d.unemploymentRate,
-    "LFPR": d.lfpr,
+    "LFPR": d.participationRate,
   }));
 
   return (
@@ -57,16 +57,15 @@ const TrendCharts = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Employment & Unemployment Rate */}
         <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
           <h3 className="text-lg font-semibold text-foreground mb-1">Employment & Unemployment Rate</h3>
-          <p className="text-xs text-muted-foreground mb-4">Monthly seasonally adjusted figures (%)</p>
+          <p className="text-xs text-muted-foreground mb-4">Monthly figures (%)</p>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} interval={selectedYear === "all" ? 3 : 0} angle={-30} textAnchor="end" height={50} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} interval={selectedYear === "all" ? 5 : 0} angle={-30} textAnchor="end" height={50} />
+                <YAxis domain={[90, 100]} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
                 <Tooltip
                   contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px" }}
                   labelStyle={{ fontWeight: 600 }}
@@ -79,7 +78,6 @@ const TrendCharts = () => {
           </div>
         </div>
 
-        {/* LFPR */}
         <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
           <h3 className="text-lg font-semibold text-foreground mb-1">Labour Force Participation Rate</h3>
           <p className="text-xs text-muted-foreground mb-4">How many working-age people are in the labour market (%)</p>
@@ -87,7 +85,7 @@ const TrendCharts = () => {
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} interval={selectedYear === "all" ? 3 : 0} angle={-30} textAnchor="end" height={50} />
+                <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} interval={selectedYear === "all" ? 5 : 0} angle={-30} textAnchor="end" height={50} />
                 <YAxis domain={[65, 75]} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
                 <Tooltip
                   contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px" }}

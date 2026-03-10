@@ -1,28 +1,16 @@
 import { useState, useEffect, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { motion } from "framer-motion";
-import { stateDataQ4_2024 } from "@/data/labourData";
+import { latestStateData } from "@/data/labourData";
 
-type Metric = "unemploymentRate" | "lfpr";
+type Metric = "unemploymentRate" | "participationRate";
 
-// Map state names from GeoJSON to our data
 const STATE_NAME_MAP: Record<string, string> = {
-  "Kedah": "Kedah",
-  "Pulau Pinang": "Pulau Pinang",
-  "Perak": "Perak",
-  "Perlis": "Perlis",
-  "Selangor": "Selangor",
-  "Negeri Sembilan": "Negeri Sembilan",
-  "Melaka": "Melaka",
-  "Johor": "Johor",
-  "Pahang": "Pahang",
-  "Terengganu": "Terengganu",
-  "Kelantan": "Kelantan",
-  "Sabah": "Sabah",
-  "Sarawak": "Sarawak",
-  "W.P. Kuala Lumpur": "W.P. Kuala Lumpur",
-  "W.P. Putrajaya": "W.P. Putrajaya",
-  "W.P. Labuan": "W.P. Labuan",
+  "Kedah": "Kedah", "Pulau Pinang": "Pulau Pinang", "Perak": "Perak", "Perlis": "Perlis",
+  "Selangor": "Selangor", "Negeri Sembilan": "Negeri Sembilan", "Melaka": "Melaka",
+  "Johor": "Johor", "Pahang": "Pahang", "Terengganu": "Terengganu", "Kelantan": "Kelantan",
+  "Sabah": "Sabah", "Sarawak": "Sarawak", "W.P. Kuala Lumpur": "W.P. Kuala Lumpur",
+  "W.P. Putrajaya": "W.P. Putrajaya", "W.P. Labuan": "W.P. Labuan",
 };
 
 const getColor = (value: number, metric: Metric): string => {
@@ -33,7 +21,6 @@ const getColor = (value: number, metric: Metric): string => {
     if (value <= 4.5) return "hsl(25, 80%, 55%)";
     return "hsl(0, 70%, 55%)";
   }
-  // LFPR - higher is better
   if (value >= 73) return "hsl(120, 40%, 50%)";
   if (value >= 70) return "hsl(80, 50%, 50%)";
   if (value >= 67) return "hsl(45, 80%, 55%)";
@@ -61,12 +48,11 @@ const StateMap = () => {
   }, []);
 
   const sortedData = useMemo(() => {
-    return [...stateDataQ4_2024].sort((a, b) => b[metric] - a[metric]);
+    return [...latestStateData].sort((a, b) => b[metric] - a[metric]);
   }, [metric]);
 
   const metricLabel = metric === "unemploymentRate" ? "Unemployment Rate" : "Labour Force Participation Rate";
 
-  // Simple SVG map projection (Mercator approximation for Malaysia)
   const projectPoint = (lon: number, lat: number): [number, number] => {
     const minLon = 99.5, maxLon = 119.5, minLat = 0.8, maxLat = 7.5;
     const width = 800, height = 400;
@@ -86,9 +72,7 @@ const StateMap = () => {
     const paths: string[] = [];
     if (geometry.type === 'MultiPolygon') {
       geometry.coordinates.forEach(polygon => {
-        polygon.forEach(ring => {
-          paths.push(getPathFromCoords(ring));
-        });
+        polygon.forEach(ring => { paths.push(getPathFromCoords(ring)); });
       });
     } else if (geometry.type === 'Polygon') {
       (geometry.coordinates as unknown as number[][][]).forEach(ring => {
@@ -102,10 +86,8 @@ const StateMap = () => {
     const mapped = Object.entries(STATE_NAME_MAP).find(([key]) =>
       name.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(name.toLowerCase())
     );
-    if (mapped) {
-      return stateDataQ4_2024.find(s => s.state === mapped[1]);
-    }
-    return stateDataQ4_2024.find(s =>
+    if (mapped) return latestStateData.find(s => s.state === mapped[1]);
+    return latestStateData.find(s =>
       s.state.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(s.state.toLowerCase())
     );
   };
@@ -121,13 +103,13 @@ const StateMap = () => {
         <div>
           <h2 className="text-2xl font-bold text-foreground">State-Level Labour Market</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Compare employment conditions across Malaysia's states — some regions face bigger challenges than others.
+            Compare employment conditions across Malaysia's states — Q3 2025 data.
           </p>
         </div>
         <div className="flex gap-2">
           {([
             { key: "unemploymentRate" as Metric, label: "Unemployment" },
-            { key: "lfpr" as Metric, label: "Participation" },
+            { key: "participationRate" as Metric, label: "Participation" },
           ]).map(m => (
             <button
               key={m.key}
@@ -143,11 +125,9 @@ const StateMap = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Choropleth Map */}
         <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
           <h3 className="text-lg font-semibold text-foreground mb-1">{metricLabel} by State</h3>
-          <p className="text-xs text-muted-foreground mb-4">Q4 2024 — Hover over a state for details</p>
-          
+          <p className="text-xs text-muted-foreground mb-4">Q3 2025 — Hover over a state for details</p>
           {geoData.length > 0 ? (
             <div className="relative">
               <svg viewBox="0 0 800 400" className="w-full h-auto">
@@ -156,14 +136,9 @@ const StateMap = () => {
                   const value = stateData ? stateData[metric] : 0;
                   const color = getColor(value, metric);
                   const isHovered = hoveredState === feature.properties.name;
-
                   return (
-                    <path
-                      key={i}
-                      d={getStatePath(feature.geometry)}
-                      fill={color}
-                      stroke="hsl(var(--background))"
-                      strokeWidth={isHovered ? 2 : 0.5}
+                    <path key={i} d={getStatePath(feature.geometry)} fill={color}
+                      stroke="hsl(var(--background))" strokeWidth={isHovered ? 2 : 0.5}
                       opacity={hoveredState && !isHovered ? 0.5 : 1}
                       className="cursor-pointer transition-all duration-200"
                       onMouseEnter={() => setHoveredState(feature.properties.name)}
@@ -172,7 +147,6 @@ const StateMap = () => {
                   );
                 })}
               </svg>
-
               {hoveredState && (() => {
                 const sd = findStateData(hoveredState);
                 if (!sd) return null;
@@ -180,13 +154,11 @@ const StateMap = () => {
                   <div className="absolute top-2 left-2 bg-card border border-border rounded-xl p-3 shadow-lg text-sm z-10">
                     <p className="font-semibold text-foreground">{sd.state}</p>
                     <p className="text-muted-foreground">Unemployment: <strong className="text-foreground">{sd.unemploymentRate}%</strong></p>
-                    <p className="text-muted-foreground">LFPR: <strong className="text-foreground">{sd.lfpr}%</strong></p>
+                    <p className="text-muted-foreground">LFPR: <strong className="text-foreground">{sd.participationRate}%</strong></p>
                     <p className="text-muted-foreground">Labour Force: <strong className="text-foreground">{sd.labourForce.toLocaleString()}k</strong></p>
                   </div>
                 );
               })()}
-
-              {/* Legend */}
               <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground justify-center flex-wrap">
                 {metric === "unemploymentRate" ? (
                   <>
@@ -212,7 +184,6 @@ const StateMap = () => {
           )}
         </div>
 
-        {/* Bar chart ranking */}
         <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
           <h3 className="text-lg font-semibold text-foreground mb-1">State Rankings</h3>
           <p className="text-xs text-muted-foreground mb-4">States ranked by {metricLabel.toLowerCase()}</p>
