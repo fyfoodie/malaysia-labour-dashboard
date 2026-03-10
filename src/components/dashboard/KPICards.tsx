@@ -6,6 +6,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 const KPICards = () => {
   const { latest, changes } = getLatestStats();
   const latestUnderemployment = underemploymentBySex[underemploymentBySex.length - 1];
+  const prevUnderemployment = underemploymentBySex[underemploymentBySex.length - 2];
+  const underChange = +(latestUnderemployment.overall - prevUnderemployment.overall).toFixed(1);
 
   const cards = [
     {
@@ -27,16 +29,16 @@ const KPICards = () => {
     },
     {
       title: "Labour Force Participation",
-      value: `${latest.lfpr}%`,
-      change: changes.lfpr,
+      value: `${latest.participationRate}%`,
+      change: changes.participationRate,
       icon: Users,
       tooltip: "The percentage of working-age people who are either employed or actively seeking employment.",
       color: "from-accent to-primary",
     },
     {
       title: "Underemployment Rate",
-      value: `${latestUnderemployment.total}%`,
-      change: -0.1,
+      value: `${latestUnderemployment.overall}%`,
+      change: underChange,
       icon: AlertTriangle,
       tooltip: "People who are employed but working fewer hours than they want, or in jobs below their skill level.",
       color: "from-primary to-secondary",
@@ -60,7 +62,6 @@ const KPICards = () => {
                 transition={{ delay: index * 0.1, duration: 0.5 }}
                 className="relative overflow-hidden rounded-2xl bg-card border border-border p-5 md:p-6 shadow-sm hover:shadow-md transition-all duration-300 cursor-help group"
               >
-                {/* Glow background */}
                 <div className={`absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br ${card.color} opacity-10 rounded-full blur-2xl group-hover:opacity-20 transition-opacity`} />
                 
                 <div className="relative z-10">

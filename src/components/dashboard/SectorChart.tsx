@@ -1,20 +1,32 @@
 import { useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend } from "recharts";
 import { motion } from "framer-motion";
-import { sectorData2024, sectorData2023 } from "@/data/labourData";
+import { sectorData } from "@/data/labourData";
 
 const COLORS = [
   "hsl(var(--chart-1))",
   "hsl(var(--chart-2))",
   "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
-  "hsl(var(--muted-foreground))",
 ];
 
 const SectorChart = () => {
-  const [year, setYear] = useState(2024);
-  const data = year === 2024 ? sectorData2024 : sectorData2023;
+  const [selectedYear, setSelectedYear] = useState(2022);
+  const years = sectorData.map(d => d.year);
+
+  const currentData = sectorData.find(d => d.year === selectedYear);
+  const barData = currentData ? [
+    { sector: "Services", proportion: currentData.services },
+    { sector: "Industry", proportion: currentData.industry },
+    { sector: "Agriculture", proportion: currentData.agriculture },
+  ] : [];
+
+  // Trend data for line view
+  const trendData = sectorData.filter(d => d.year >= 2010).map(d => ({
+    year: d.year.toString(),
+    Services: d.services,
+    Industry: d.industry,
+    Agriculture: d.agriculture,
+  }));
 
   return (
     <motion.div
@@ -30,13 +42,13 @@ const SectorChart = () => {
             Discover which industries offer the most job opportunities in Malaysia.
           </p>
         </div>
-        <div className="flex gap-2">
-          {[2023, 2024].map(y => (
+        <div className="flex gap-2 flex-wrap">
+          {[2018, 2019, 2020, 2021, 2022].map(y => (
             <button
               key={y}
-              onClick={() => setYear(y)}
+              onClick={() => setSelectedYear(y)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                year === y ? "bg-foreground text-background shadow-md" : "bg-card border border-border text-foreground hover:bg-muted"
+                selectedYear === y ? "bg-foreground text-background shadow-md" : "bg-card border border-border text-foreground hover:bg-muted"
               }`}
             >
               {y}
@@ -45,31 +57,60 @@ const SectorChart = () => {
         </div>
       </div>
 
-      <div className="h-[350px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-            <XAxis type="number" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} unit="k" />
-            <YAxis type="category" dataKey="sector" tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }} width={130} />
-            <Tooltip
-              contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px" }}
-              formatter={(value: number, name: string) => [`${value.toLocaleString()}k employed (${data.find(d => d.employed === value)?.percentage}%)`, "Employment"]}
-              labelStyle={{ fontWeight: 600 }}
-            />
-            <Bar dataKey="employed" radius={[0, 8, 8, 0]} barSize={28}>
-              {data.map((_, index) => (
-                <Cell key={index} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Bar chart for selected year */}
+        <div>
+          <h3 className="text-sm font-semibold text-foreground mb-3">Sector Distribution — {selectedYear}</h3>
+          <div className="h-[280px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={barData} layout="vertical" margin={{ left: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} unit="%" />
+                <YAxis type="category" dataKey="sector" tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }} width={100} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px" }}
+                  formatter={(value: number) => [`${value}%`, "Proportion"]}
+                  labelStyle={{ fontWeight: 600 }}
+                />
+                <Bar dataKey="proportion" radius={[0, 8, 8, 0]} barSize={28}>
+                  {barData.map((_, index) => (
+                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Trend over time */}
+        <div>
+          <h3 className="text-sm font-semibold text-foreground mb-3">Sector Trends (2010–2022)</h3>
+          <div className="h-[280px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={trendData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="year" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} unit="%" />
+                <Tooltip
+                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px" }}
+                  formatter={(value: number) => [`${value}%`]}
+                  labelStyle={{ fontWeight: 600 }}
+                />
+                <Legend />
+                <Bar dataKey="Services" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} barSize={12} />
+                <Bar dataKey="Industry" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} barSize={12} />
+                <Bar dataKey="Agriculture" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} barSize={12} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-3">
-        {data.slice(0, 3).map((sector, i) => (
+        {barData.map((sector, i) => (
           <div key={sector.sector} className="flex items-center gap-2 text-xs text-muted-foreground">
             <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: COLORS[i] }} />
-            <span><strong className="text-foreground">{sector.sector}</strong> — {sector.percentage}% of jobs</span>
+            <span><strong className="text-foreground">{sector.sector}</strong> — {sector.proportion}% of jobs</span>
           </div>
         ))}
       </div>

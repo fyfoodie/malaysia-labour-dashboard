@@ -3,10 +3,12 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import KPICards from "@/components/dashboard/KPICards";
 import TrendCharts from "@/components/dashboard/TrendCharts";
 import SectorChart from "@/components/dashboard/SectorChart";
+import InDemandChart from "@/components/dashboard/InDemandChart";
 import UnderemploymentCharts from "@/components/dashboard/UnderemploymentCharts";
 import StateMap from "@/components/dashboard/StateMap";
+import RegionalJobsMap from "@/components/dashboard/RegionalJobsMap";
 import { motion } from "framer-motion";
-import { TrendingUp, Lightbulb, MapPin } from "lucide-react";
+import { TrendingUp, Lightbulb, MapPin, Briefcase, Globe } from "lucide-react";
 
 const Index = () => {
   const { isDark, toggle } = useTheme();
@@ -15,7 +17,6 @@ const Index = () => {
     <div className="min-h-screen bg-background transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8 space-y-8 md:space-y-12">
         
-        {/* Header */}
         <DashboardHeader isDark={isDark} toggleTheme={toggle} />
 
         {/* Section 1: KPI Snapshot */}
@@ -47,6 +48,16 @@ const Index = () => {
           <SectorChart />
         </section>
 
+        {/* Section 3.5: In-Demand Occupations */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-1.5 h-6 rounded-full bg-secondary" />
+            <Briefcase className="h-5 w-5 text-secondary" />
+            <span className="text-sm text-muted-foreground">Which occupations pay the most?</span>
+          </div>
+          <InDemandChart />
+        </section>
+
         {/* Section 4: Underemployment */}
         <section>
           <UnderemploymentCharts />
@@ -62,7 +73,17 @@ const Index = () => {
           <StateMap />
         </section>
 
-        {/* Footer storytelling */}
+        {/* Section 6: Regional Job Opportunities */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-1.5 h-6 rounded-full bg-accent" />
+            <Globe className="h-5 w-5 text-accent" />
+            <span className="text-sm text-muted-foreground">Where are the best job opportunities by region?</span>
+          </div>
+          <RegionalJobsMap />
+        </section>
+
+        {/* Footer */}
         <motion.footer
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -77,7 +98,7 @@ const Index = () => {
             to policymakers designing better programs. Knowledge empowers better employment outcomes for all Malaysians. 🇲🇾
           </p>
           <p className="text-xs text-muted-foreground mt-4">
-            Source: Department of Statistics Malaysia (DOSM) • Data uses mock values — attach your CSV files to use real data
+            Source: Department of Statistics Malaysia (DOSM) • Y-Axis Job Outlook Malaysia
           </p>
         </motion.footer>
       </div>
