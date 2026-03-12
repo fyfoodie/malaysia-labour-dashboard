@@ -76,11 +76,11 @@ const UnderemploymentCharts = () => {
                 <XAxis dataKey="period" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} angle={-30} textAnchor="end" height={50} />
                 <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} unit="%" />
                 <Tooltip
-                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px" }}
-                  labelStyle={{ fontWeight: 600 }}
+                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px", color: "hsl(var(--foreground))" }}
+                  labelStyle={{ fontWeight: 600, color: "hsl(var(--foreground))" }}
                   formatter={(value: number) => [`${value}%`]}
                 />
-                <Legend />
+                <Legend wrapperStyle={{ color: "hsl(var(--foreground))" }} />
                 <Bar dataKey="Male" fill="hsl(var(--chart-1))" radius={[6, 6, 0, 0]} barSize={14} />
                 <Bar dataKey="Female" fill="hsl(var(--chart-2))" radius={[6, 6, 0, 0]} barSize={14} />
               </BarChart>
@@ -99,8 +99,8 @@ const UnderemploymentCharts = () => {
                 <XAxis dataKey="age" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
                 <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} unit="%" />
                 <Tooltip
-                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px" }}
-                  labelStyle={{ fontWeight: 600 }}
+                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px", color: "hsl(var(--foreground))" }}
+                  labelStyle={{ fontWeight: 600, color: "hsl(var(--foreground))" }}
                   formatter={(value: number) => [`${value}%`, "Underemployment Rate"]}
                 />
                 <Bar dataKey="rate" radius={[8, 8, 0, 0]} barSize={40}>

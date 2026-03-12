@@ -157,12 +157,12 @@ const RegionalJobsMap = () => {
                   tickFormatter={(v) => `RM${(v/1000).toFixed(0)}k`} />
                 <YAxis type="category" dataKey="state" tick={{ fontSize: 11, fill: "hsl(var(--foreground))" }} width={110} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px" }}
+                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px", color: "hsl(var(--foreground))" }}
                   formatter={(value: number, name: string) => {
                     const item = barData.find(d => d.avgSalary === value);
                     return [`RM ${item?.salaryMin?.toLocaleString()} – RM ${item?.salaryMax?.toLocaleString()}`, "Salary Range"];
                   }}
-                  labelStyle={{ fontWeight: 600 }}
+                  labelStyle={{ fontWeight: 600, color: "hsl(var(--foreground))" }}
                 />
                 <Bar dataKey="avgSalary" radius={[0, 6, 6, 0]} barSize={20}>
                   {barData.map((entry) => (

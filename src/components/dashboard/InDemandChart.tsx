@@ -49,7 +49,11 @@ const InDemandChart = () => {
                 innerRadius={60}
                 dataKey="value"
                 paddingAngle={2}
-                label={({ name, percentage }) => `${name} (${percentage}%)`}
+                label={({ name, percentage, x, y }) => (
+                  <text x={x} y={y} fill="hsl(var(--foreground))" fontSize={11} textAnchor="middle">
+                    {`${name} (${percentage}%)`}
+                  </text>
+                )}
                 labelLine={{ stroke: "hsl(var(--muted-foreground))", strokeWidth: 1 }}
               >
                 {pieData.map((_, index) => (
@@ -62,12 +66,13 @@ const InDemandChart = () => {
                   border: "1px solid hsl(var(--border))",
                   borderRadius: "12px",
                   fontSize: "13px",
+                  color: "hsl(var(--foreground))",
                 }}
                 formatter={(value: number, name: string) => [
                   `RM ${value.toLocaleString()} / year`,
                   name,
                 ]}
-                labelStyle={{ fontWeight: 600 }}
+                labelStyle={{ fontWeight: 600, color: "hsl(var(--foreground))" }}
               />
             </PieChart>
           </ResponsiveContainer>

@@ -42,9 +42,11 @@ const Index = () => {
           transition={{ delay: 0.2, duration: 0.5 }}
           className="text-center py-6"
         >
-          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">Malaysia's SARADY</h2>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">
+            Malaysia Labour Market<br />& Employment Dashboard
+          </h2>
           <p className="mt-3 text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
-            Explore employment trends, sector opportunities, and regional insights — designed for students, job seekers, businesses, and everyone curious about Malaysia's economy.
+            Explore Malaysia's employment trends, sector opportunities, and regional differences — made simple for everyone. 🇲🇾
           </p>
         </motion.div>
 
