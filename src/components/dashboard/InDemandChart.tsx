@@ -49,9 +49,12 @@ const InDemandChart = () => {
                 innerRadius={60}
                 dataKey="value"
                 paddingAngle={2}
-                label={({ name, percentage }) => `${name} (${percentage}%)`}
+                label={({ name, percentage, x, y }) => (
+                  <text x={x} y={y} fill="hsl(var(--foreground))" fontSize={11} textAnchor="middle">
+                    {`${name} (${percentage}%)`}
+                  </text>
+                )}
                 labelLine={{ stroke: "hsl(var(--muted-foreground))", strokeWidth: 1 }}
-                style={{ fontSize: 11, fill: "hsl(var(--foreground))" }}
               >
                 {pieData.map((_, index) => (
                   <Cell key={index} fill={COLORS[index % COLORS.length]} />
