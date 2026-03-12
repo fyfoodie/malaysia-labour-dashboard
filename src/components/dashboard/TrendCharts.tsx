@@ -89,8 +89,9 @@ const TrendCharts = () => {
                 <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} interval={selectedYear === "all" ? 5 : 0} angle={-30} textAnchor="end" height={50} />
                 <YAxis domain={[65, 75]} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px" }}
-                  labelStyle={{ fontWeight: 600 }}
+                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px", color: "hsl(var(--foreground))" }}
+                  labelStyle={{ fontWeight: 600, color: "hsl(var(--foreground))" }}
+                  itemStyle={{ color: "hsl(var(--foreground))" }}
                 />
                 <Line type="monotone" dataKey="LFPR" stroke="hsl(var(--chart-3))" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} name="LFPR" />
               </LineChart>

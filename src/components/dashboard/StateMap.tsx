@@ -194,9 +194,9 @@ const StateMap = () => {
                 <XAxis type="number" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} unit="%" />
                 <YAxis type="category" dataKey="state" tick={{ fontSize: 10, fill: "hsl(var(--foreground))" }} width={120} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px" }}
+                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px", color: "hsl(var(--foreground))" }}
                   formatter={(value: number) => [`${value}%`, metricLabel]}
-                  labelStyle={{ fontWeight: 600 }}
+                  labelStyle={{ fontWeight: 600, color: "hsl(var(--foreground))" }}
                 />
                 <Bar dataKey={metric} radius={[0, 6, 6, 0]} barSize={18}>
                   {sortedData.map((entry) => (

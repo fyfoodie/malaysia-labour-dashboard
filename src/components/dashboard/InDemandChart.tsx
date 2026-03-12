@@ -63,12 +63,13 @@ const InDemandChart = () => {
                   border: "1px solid hsl(var(--border))",
                   borderRadius: "12px",
                   fontSize: "13px",
+                  color: "hsl(var(--foreground))",
                 }}
                 formatter={(value: number, name: string) => [
                   `RM ${value.toLocaleString()} / year`,
                   name,
                 ]}
-                labelStyle={{ fontWeight: 600 }}
+                labelStyle={{ fontWeight: 600, color: "hsl(var(--foreground))" }}
               />
             </PieChart>
           </ResponsiveContainer>

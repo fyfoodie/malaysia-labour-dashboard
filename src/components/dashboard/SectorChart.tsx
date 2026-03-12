@@ -92,11 +92,11 @@ const SectorChart = () => {
                 <XAxis dataKey="year" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
                 <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} unit="%" />
                 <Tooltip
-                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px" }}
+                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px", color: "hsl(var(--foreground))" }}
                   formatter={(value: number) => [`${value}%`]}
-                  labelStyle={{ fontWeight: 600 }}
+                  labelStyle={{ fontWeight: 600, color: "hsl(var(--foreground))" }}
                 />
-                <Legend />
+                <Legend wrapperStyle={{ color: "hsl(var(--foreground))" }} />
                 <Bar dataKey="Services" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} barSize={12} />
                 <Bar dataKey="Industry" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} barSize={12} />
                 <Bar dataKey="Agriculture" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} barSize={12} />
