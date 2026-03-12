@@ -71,7 +71,7 @@ const TrendCharts = () => {
                   labelStyle={{ fontWeight: 600, color: "hsl(var(--foreground))" }}
                   itemStyle={{ color: "hsl(var(--foreground))" }}
                 />
-                <Legend />
+                <Legend wrapperStyle={{ color: "hsl(var(--foreground))" }} />
                 <Line type="monotone" dataKey="Employment Rate" stroke="hsl(var(--chart-1))" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
                 <Line type="monotone" dataKey="Unemployment Rate" stroke="hsl(var(--chart-2))" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
               </LineChart>
