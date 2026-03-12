@@ -68,9 +68,9 @@ const SectorChart = () => {
                 <XAxis type="number" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} unit="%" />
                 <YAxis type="category" dataKey="sector" tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }} width={100} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px" }}
+                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px", color: "hsl(var(--foreground))" }}
                   formatter={(value: number) => [`${value}%`, "Proportion"]}
-                  labelStyle={{ fontWeight: 600 }}
+                  labelStyle={{ fontWeight: 600, color: "hsl(var(--foreground))" }}
                 />
                 <Bar dataKey="proportion" radius={[0, 8, 8, 0]} barSize={28}>
                   {barData.map((_, index) => (
