@@ -1,3 +1,4 @@
+import { useState, useRef, useCallback } from "react";
 import { useTheme } from "@/hooks/useTheme";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import KPICards from "@/components/dashboard/KPICards";
@@ -10,17 +11,45 @@ import RegionalJobsMap from "@/components/dashboard/RegionalJobsMap";
 import { motion } from "framer-motion";
 import { TrendingUp, Lightbulb, MapPin, Briefcase, Globe } from "lucide-react";
 
+const sectionMap: Record<string, string> = {
+  snapshot: "section-snapshot",
+  trends: "section-trends",
+  sectors: "section-sectors",
+  underemployment: "section-underemployment",
+  states: "section-states",
+};
+
 const Index = () => {
   const { isDark, toggle } = useTheme();
+  const [activeSection, setActiveSection] = useState("snapshot");
+
+  const handleSectionClick = useCallback((section: string) => {
+    setActiveSection(section);
+    const el = document.getElementById(sectionMap[section]);
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8 space-y-8 md:space-y-12">
-        
-        <DashboardHeader isDark={isDark} toggleTheme={toggle} />
+
+        <DashboardHeader isDark={isDark} toggleTheme={toggle} activeSection={activeSection} onSectionClick={handleSectionClick} />
+
+        {/* Hero */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="text-center py-6"
+        >
+          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">Malaysia's SARADY</h2>
+          <p className="mt-3 text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
+            Explore employment trends, sector opportunities, and regional insights — designed for students, job seekers, businesses, and everyone curious about Malaysia's economy.
+          </p>
+        </motion.div>
 
         {/* Section 1: KPI Snapshot */}
-        <section>
+        <section id="section-snapshot">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1.5 h-6 rounded-full bg-primary" />
             <h2 className="text-lg font-semibold text-foreground">Key Labour Market Snapshot</h2>
@@ -29,7 +58,7 @@ const Index = () => {
         </section>
 
         {/* Section 2: Trends */}
-        <section>
+        <section id="section-trends">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1.5 h-6 rounded-full bg-secondary" />
             <TrendingUp className="h-5 w-5 text-secondary" />
@@ -39,7 +68,7 @@ const Index = () => {
         </section>
 
         {/* Section 3: Sector */}
-        <section>
+        <section id="section-sectors">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1.5 h-6 rounded-full bg-accent" />
             <Lightbulb className="h-5 w-5 text-accent" />
@@ -59,12 +88,12 @@ const Index = () => {
         </section>
 
         {/* Section 4: Underemployment */}
-        <section>
+        <section id="section-underemployment">
           <UnderemploymentCharts />
         </section>
 
         {/* Section 5: State-Level */}
-        <section>
+        <section id="section-states">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1.5 h-6 rounded-full bg-primary" />
             <MapPin className="h-5 w-5 text-primary" />
@@ -94,7 +123,7 @@ const Index = () => {
             Data → Insight → Better Decisions
           </p>
           <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-            Understanding the labour market helps everyone — from students choosing a career path 
+            Understanding the labour market helps everyone — from students choosing a career path
             to policymakers designing better programs. Knowledge empowers better employment outcomes for all Malaysians. 🇲🇾
           </p>
           <p className="text-xs text-muted-foreground mt-4">

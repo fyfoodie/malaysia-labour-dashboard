@@ -1,27 +1,37 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import ThemeToggle from "./ThemeToggle";
-import { BarChart3, Clock } from "lucide-react";
+import { BarChart3, TrendingUp, PieChart, Users, MapPin, Clock } from "lucide-react";
 
 interface DashboardHeaderProps {
   isDark: boolean;
   toggleTheme: () => void;
+  activeSection?: string;
+  onSectionClick?: (section: string) => void;
 }
 
-const DashboardHeader = ({ isDark, toggleTheme }: DashboardHeaderProps) => {
-  const [time, setTime] = useState(new Date());
+const navItems = [
+  { id: "snapshot", label: "Snapshot", icon: BarChart3 },
+  { id: "trends", label: "Trends", icon: TrendingUp },
+  { id: "sectors", label: "Sectors", icon: PieChart },
+  { id: "underemployment", label: "Underemployment", icon: Users },
+  { id: "states", label: "States", icon: MapPin },
+];
+
+const DashboardHeader = ({ isDark, toggleTheme, activeSection = "snapshot", onSectionClick }: DashboardHeaderProps) => {
+  const [now, setNow] = useState(new Date());
 
   useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
+    const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const malaysiaTime = time.toLocaleString("en-MY", {
+  const formatter = new Intl.DateTimeFormat("en-MY", {
     timeZone: "Asia/Kuala_Lumpur",
-    weekday: "long",
-    year: "numeric",
-    month: "long",
+    weekday: "short",
     day: "numeric",
+    month: "short",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
@@ -33,42 +43,51 @@ const DashboardHeader = ({ isDark, toggleTheme }: DashboardHeaderProps) => {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary via-accent to-primary/60 p-6 md:p-8 shadow-lg"
+      className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden"
     >
-      {/* Decorative circles */}
-      <div className="absolute -top-20 -right-20 w-60 h-60 bg-primary-foreground/10 rounded-full blur-3xl" />
-      <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-primary-foreground/5 rounded-full blur-2xl" />
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-4 md:px-6 py-3">
+        {/* Logo + Title */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary/10">
+            <BarChart3 className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-sm font-bold text-foreground leading-tight">Malaysia Labour Market</h1>
+            <p className="text-xs text-muted-foreground">Employment Dashboard</p>
+          </div>
+        </div>
 
-      <div className="relative z-10 flex flex-col items-center text-center">
-        {/* Top bar: theme toggle */}
-        <div className="w-full flex justify-end mb-4">
+        {/* Clock + Toggle */}
+        <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground tabular-nums">
+            <Clock className="h-3.5 w-3.5" />
+            <span>{formatter.format(now)}</span>
+          </div>
           <ThemeToggle isDark={isDark} toggle={toggleTheme} />
         </div>
+      </div>
 
-        {/* Center content */}
-        <div className="flex items-center justify-center gap-3 mb-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary-foreground/20 backdrop-blur-sm">
-            <BarChart3 className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <span className="text-xs font-medium text-primary-foreground/70 uppercase tracking-wider">DOSM Data Dashboard</span>
-        </div>
-
-        <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-primary-foreground leading-tight">
-          Malaysia Labour Market<br />& Employment Dashboard
-        </h1>
-
-        <p className="mt-3 text-sm md:text-base text-primary-foreground/80 max-w-xl">
-          Explore Malaysia's employment trends, sector opportunities, and regional differences — 
-          made simple for everyone. 🇲🇾
-        </p>
-
-        {/* Live Malaysia time */}
-        <div className="mt-4 flex items-center gap-2 px-4 py-2 rounded-full bg-primary-foreground/15 backdrop-blur-sm">
-          <Clock className="h-4 w-4 text-primary-foreground/80" />
-          <span className="text-xs md:text-sm font-medium text-primary-foreground/90">
-            🇲🇾 Malaysia Time: {malaysiaTime}
-          </span>
-        </div>
+      {/* Nav tabs */}
+      <div className="flex items-center gap-1 px-4 md:px-6 pb-3 overflow-x-auto">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = activeSection === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => onSectionClick?.(item.id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                isActive
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              }`}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {item.label}
+            </button>
+          );
+        })}
       </div>
     </motion.header>
   );
