@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useTheme } from "@/hooks/useTheme";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import KPICards from "@/components/dashboard/KPICards";
@@ -8,6 +8,10 @@ import InDemandChart from "@/components/dashboard/InDemandChart";
 import UnderemploymentCharts from "@/components/dashboard/UnderemploymentCharts";
 import StateMap from "@/components/dashboard/StateMap";
 import RegionalJobsMap from "@/components/dashboard/RegionalJobsMap";
+import DataInsightCards from "@/components/dashboard/DataInsightCards";
+import LabourHealthScore from "@/components/dashboard/LabourHealthScore";
+import StoryMode from "@/components/dashboard/StoryMode";
+import TrendAlerts from "@/components/dashboard/TrendAlerts";
 import { motion } from "framer-motion";
 import { TrendingUp, Lightbulb, MapPin, Briefcase, Globe } from "lucide-react";
 
@@ -42,15 +46,37 @@ const Index = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
-          className="text-center py-6"
+          className="text-center py-6 space-y-4"
         >
           <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">
             Malaysia Labour Market<br />& Employment Dashboard
           </h2>
-          <p className="mt-3 text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
             Explore Malaysia's employment trends, sector opportunities, and regional differences — made simple for everyone. 🇲🇾
           </p>
+          <div className="flex justify-center">
+            <StoryMode />
+          </div>
         </motion.div>
+
+        {/* Trend Alerts */}
+        <section>
+          <TrendAlerts />
+        </section>
+
+        {/* Labour Health Score */}
+        <section>
+          <LabourHealthScore />
+        </section>
+
+        {/* Did You Know? Insight Cards */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-1.5 h-6 rounded-full bg-primary" />
+            <h2 className="text-lg font-semibold text-foreground">💡 Data Insights</h2>
+          </div>
+          <DataInsightCards />
+        </section>
 
         {/* Section 1: KPI Snapshot */}
         <section id="section-snapshot">
@@ -81,7 +107,7 @@ const Index = () => {
           <SectorChart />
         </section>
 
-        {/* Section 3.5: In-Demand Occupations */}
+        {/* In-Demand Occupations */}
         <section>
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1.5 h-6 rounded-full bg-secondary" />
