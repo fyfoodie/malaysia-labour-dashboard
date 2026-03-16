@@ -43,26 +43,20 @@ const TrendCharts = () => {
             Monthly labour market data from 2010 to 2026 — track long-term shifts in employment.
           </p>
         </div>
-        <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={() => setSelectedYear("all")}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              selectedYear === "all" ? "bg-primary text-primary-foreground shadow-md" : "bg-card border border-border text-foreground hover:bg-muted"
-            }`}
+        <div className="relative">
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value === "all" ? "all" : Number(e.target.value))}
+            className="appearance-none px-4 py-2.5 pr-10 rounded-xl bg-card border border-border text-foreground text-sm font-medium cursor-pointer hover:bg-muted transition-all focus:outline-none focus:ring-2 focus:ring-primary/50"
           >
-            All Years
-          </button>
-          {labourMarketYears.map(year => (
-            <button
-              key={year}
-              onClick={() => setSelectedYear(year)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                selectedYear === year ? "bg-primary text-primary-foreground shadow-md" : "bg-card border border-border text-foreground hover:bg-muted"
-              }`}
-            >
-              {year}
-            </button>
-          ))}
+            <option value="all">All Years</option>
+            {labourMarketYears.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+          <svg className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
       </div>
 
