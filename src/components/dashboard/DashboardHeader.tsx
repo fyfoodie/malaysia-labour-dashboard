@@ -43,7 +43,7 @@ const DashboardHeader = ({ isDark, toggleTheme, activeSection = "snapshot", onSe
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden"
+      className="rounded-2xl bg-card/95 backdrop-blur-md border border-border shadow-sm overflow-hidden"
     >
       {/* Top bar */}
       <div className="flex items-center justify-between px-4 md:px-6 py-3">
