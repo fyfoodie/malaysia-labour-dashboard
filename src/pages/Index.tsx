@@ -33,7 +33,9 @@ const Index = () => {
     <div className="min-h-screen bg-background transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8 space-y-8 md:space-y-12">
 
-        <DashboardHeader isDark={isDark} toggleTheme={toggle} activeSection={activeSection} onSectionClick={handleSectionClick} />
+        <div className="sticky top-0 z-50">
+          <DashboardHeader isDark={isDark} toggleTheme={toggle} activeSection={activeSection} onSectionClick={handleSectionClick} />
+        </div>
 
         {/* Hero */}
         <motion.div
