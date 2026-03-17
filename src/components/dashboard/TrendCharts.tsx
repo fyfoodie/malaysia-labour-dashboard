@@ -1,161 +1,191 @@
 import { useState, useMemo } from "react";
 import {
-  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, Legend, ReferenceLine,
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, Legend, ReferenceLine, ComposedChart,
 } from "recharts";
-import { motion } from "framer-motion";
-import { labourMarketData, labourMarketYears } from "@/data/labourMarketData";
+import { motion, AnimatePresence } from "framer-motion";
+import { useLabourData } from "@/context/LabourDataContext";
+import { TrendingUp, TrendingDown, Activity } from "lucide-react";
 
 const tooltipStyle = {
   backgroundColor: "hsl(var(--card))",
   border: "1px solid hsl(var(--border))",
   borderRadius: "12px",
-  fontSize: "13px",
+  fontSize: "12px",
   color: "hsl(var(--foreground))",
 };
 const labelStyle = { fontWeight: 600, color: "hsl(var(--foreground))" };
-const itemStyle = { color: "hsl(var(--foreground))" };
-const tickStyle = { fontSize: 11, fill: "hsl(var(--muted-foreground))" };
-const legendStyle = { color: "hsl(var(--foreground))" };
+const tickStyle  = { fontSize: 10, fill: "hsl(var(--muted-foreground))" };
+
+type Tab = "workforce" | "unemployment" | "participation" | "change";
 
 const TrendCharts = () => {
+  const { data, loading } = useLabourData();
   const [selectedYear, setSelectedYear] = useState<number | "all">("all");
+  const [activeTab, setActiveTab] = useState<Tab>("unemployment");
 
-  const filteredData = useMemo(() => {
-    if (selectedYear === "all") return labourMarketData;
-    return labourMarketData.filter(d => d.year === selectedYear);
-  }, [selectedYear]);
+  const national = useMemo(() =>
+    data?.national ? [...data.national].sort((a: any, b: any) => a.date.localeCompare(b.date)) : []
+  , [data]);
+
+  const years = useMemo(() =>
+    [...new Set(national.map((d: any) => new Date(d.date).getFullYear()))]
+  , [national]);
+
+  const filtered = useMemo(() =>
+    selectedYear === "all" ? national : national.filter((d: any) => new Date(d.date).getFullYear() === selectedYear)
+  , [selectedYear, national]);
+
+  const chartData = useMemo(() =>
+    filtered.map((d: any, i: number) => {
+      const prev = i > 0 ? filtered[i - 1] : null;
+      return {
+        label: new Date(d.date).toLocaleDateString("en-MY", { month: "short", year: "2-digit" }),
+        lf:       +(d.lf / 1000).toFixed(2),
+        employed: +(d.employed / 1000).toFixed(2),
+        uRate:    d.u_rate ?? 0,
+        pRate:    d.p_rate ?? 0,
+        change:   prev ? +(d.employed - prev.employed).toFixed(1) : 0,
+      };
+    })
+  , [filtered]);
+
+  const latest = chartData[chartData.length - 1];
+  const first  = chartData[0];
+  const peakU  = chartData.reduce((m, d) => d.uRate > m.uRate ? d : m, chartData[0] ?? { uRate: 0, label: "" });
+  const minU   = chartData.reduce((m, d) => d.uRate < m.uRate ? d : m, chartData[0] ?? { uRate: 0, label: "" });
+
+  if (loading || !data?.national?.length) {
+    return <div className="rounded-2xl bg-card border border-border p-5 h-80 animate-pulse" />;
+  }
 
   const xInterval = selectedYear === "all" ? 11 : 0;
+
+  const tabs: { key: Tab; label: string }[] = [
+    { key: "unemployment",  label: "Unemployment"  },
+    { key: "workforce",     label: "Workforce"      },
+    { key: "participation", label: "Participation"  },
+    { key: "change",        label: "Job Change"     },
+  ];
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.5 }}
-      className="space-y-6"
+      className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden"
     >
-      {/* Title + Year Filter */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Employment Trends Over Time</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Monthly labour market data from 2010 to 2026 — track long-term shifts in employment.
-          </p>
-        </div>
-        <div className="relative">
+      <div className="p-5 border-b border-border">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-bold text-foreground">Employment Trends</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Monthly data from {first?.label} to {latest?.label}
+            </p>
+          </div>
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value === "all" ? "all" : Number(e.target.value))}
-            className="appearance-none px-4 py-2.5 pr-10 rounded-xl bg-card border border-border text-foreground text-sm font-medium cursor-pointer hover:bg-muted transition-all focus:outline-none focus:ring-2 focus:ring-primary/50"
+            className="appearance-none px-3 py-2 pr-8 rounded-xl bg-muted border border-border text-foreground text-xs font-medium cursor-pointer hover:bg-muted/80 transition-all focus:outline-none w-fit"
           >
             <option value="all">All Years</option>
-            {labourMarketYears.map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
+            {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
-          <svg className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
         </div>
       </div>
 
-      {/* Chart 1: Labour Force & Employed (millions) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
-          <h3 className="text-lg font-semibold text-foreground mb-1">Labour Force & Employed</h3>
-          <p className="text-xs text-muted-foreground mb-4">In millions — how big is the workforce?</p>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={filteredData}>
+      <div className="flex border-b border-border overflow-x-auto">
+        {tabs.map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`px-5 py-3 text-xs font-semibold whitespace-nowrap transition-all border-b-2 ${
+              activeTab === tab.key
+                ? "border-primary text-primary bg-primary/5"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="p-5">
+        <div className="h-[320px]">
+          <ResponsiveContainer width="100%" height="100%">
+            {activeTab === "unemployment" ? (
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="uGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="hsl(var(--chart-2))" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0}   />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="label" tick={tickStyle} interval={xInterval} angle={-30} textAnchor="end" height={50} />
+                <YAxis tick={tickStyle} tickFormatter={v => `${v}%`} />
+                <Tooltip contentStyle={tooltipStyle} labelStyle={labelStyle} formatter={(v: number) => [`${v}%`, "Unemployment Rate"]} />
+                <ReferenceLine y={3.3} stroke="hsl(var(--muted-foreground))" strokeDasharray="5 5"
+                  label={{ value: "Pre-COVID avg (3.3%)", fill: "hsl(var(--muted-foreground))", fontSize: 9, position: "insideTopRight" }} />
+                <Area type="monotone" dataKey="uRate" name="Unemployment Rate"
+                  stroke="hsl(var(--chart-2))" strokeWidth={2.5} fill="url(#uGrad)" dot={false} activeDot={{ r: 4 }} />
+              </AreaChart>
+            ) : activeTab === "workforce" ? (
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="lfGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="hsl(var(--chart-1))" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0}   />
+                  </linearGradient>
+                  <linearGradient id="empGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="hsl(var(--chart-3))" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="hsl(var(--chart-3))" stopOpacity={0}   />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="label" tick={tickStyle} interval={xInterval} angle={-30} textAnchor="end" height={50} />
                 <YAxis tick={tickStyle} tickFormatter={v => `${v}M`} />
-                <Tooltip contentStyle={tooltipStyle} labelStyle={labelStyle} itemStyle={itemStyle} formatter={(v: number) => [`${v.toFixed(3)}M`]} />
-                <Legend wrapperStyle={legendStyle} />
-                <Line type="monotone" dataKey="lfMillion" name="Labour Force" stroke="hsl(var(--chart-1))" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
-                <Line type="monotone" dataKey="employedMillion" name="Employed" stroke="hsl(var(--chart-3))" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Chart 2: Unemployment Rate */}
-        <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
-          <h3 className="text-lg font-semibold text-foreground mb-1">Unemployment Rate Trend</h3>
-          <p className="text-xs text-muted-foreground mb-4">Monthly unemployment rate (%)</p>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={filteredData}>
+                <Tooltip contentStyle={tooltipStyle} labelStyle={labelStyle} formatter={(v: number) => [`${v}M`]} />
+                <Legend wrapperStyle={{ fontSize: 11, color: "hsl(var(--foreground))" }} />
+                <Area type="monotone" dataKey="lf"       name="Labour Force" stroke="hsl(var(--chart-1))" strokeWidth={2} fill="url(#lfGrad)"  dot={false} activeDot={{ r: 4 }} />
+                <Area type="monotone" dataKey="employed" name="Employed"      stroke="hsl(var(--chart-3))" strokeWidth={2} fill="url(#empGrad)" dot={false} activeDot={{ r: 4 }} />
+              </AreaChart>
+            ) : activeTab === "participation" ? (
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="pGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="hsl(var(--chart-4))" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0}    />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="label" tick={tickStyle} interval={xInterval} angle={-30} textAnchor="end" height={50} />
-                <YAxis tick={tickStyle} domain={["auto", "auto"]} tickFormatter={v => `${v}%`} />
-                <Tooltip contentStyle={tooltipStyle} labelStyle={labelStyle} itemStyle={itemStyle} formatter={(v: number) => [`${v}%`]} />
-                <ReferenceLine y={3.3} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 4" label={{ value: "Pre-COVID avg", fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
-                <Line type="monotone" dataKey="uRate" name="Unemployment Rate" stroke="hsl(var(--chart-2))" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* Chart 3: Monthly Employment Change (bar) + Chart 4: LFPR */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
-          <h3 className="text-lg font-semibold text-foreground mb-1">Monthly Employment Change</h3>
-          <p className="text-xs text-muted-foreground mb-4">Month-over-month change in employed persons (thousands)</p>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={filteredData}>
+                <YAxis tick={tickStyle} tickFormatter={v => `${v}%`} domain={["auto", "auto"]} />
+                <Tooltip contentStyle={tooltipStyle} labelStyle={labelStyle} formatter={(v: number) => [`${v}%`, "LFPR"]} />
+                <ReferenceLine y={70} stroke="hsl(var(--muted-foreground))" strokeDasharray="5 5"
+                  label={{ value: "70% target", fill: "hsl(var(--muted-foreground))", fontSize: 9, position: "insideTopRight" }} />
+                <Area type="monotone" dataKey="pRate" name="Participation Rate"
+                  stroke="hsl(var(--chart-4))" strokeWidth={2.5} fill="url(#pGrad)" dot={false} activeDot={{ r: 4 }} />
+              </AreaChart>
+            ) : (
+              <ComposedChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="label" tick={tickStyle} interval={xInterval} angle={-30} textAnchor="end" height={50} />
-                <YAxis tick={tickStyle} />
-                <Tooltip contentStyle={tooltipStyle} labelStyle={labelStyle} itemStyle={itemStyle} formatter={(v: number) => [`${v > 0 ? "+" : ""}${v.toFixed(1)}k`]} />
-                <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" />
-                <Bar
-                  dataKey="employmentChange"
-                  name="Employment Change"
-                  fill="hsl(var(--chart-1))"
-                  radius={[2, 2, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
-          <h3 className="text-lg font-semibold text-foreground mb-1">Labour Force Participation Rate</h3>
-          <p className="text-xs text-muted-foreground mb-4">How many working-age people are in the labour market (%)</p>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={filteredData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="label" tick={tickStyle} interval={xInterval} angle={-30} textAnchor="end" height={50} />
-                <YAxis tick={tickStyle} domain={["auto", "auto"]} tickFormatter={v => `${v}%`} />
-                <Tooltip contentStyle={tooltipStyle} labelStyle={labelStyle} itemStyle={itemStyle} formatter={(v: number) => [`${v}%`]} />
-                <Line type="monotone" dataKey="pRate" name="LFPR" stroke="hsl(var(--chart-4))" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* Chart 5: Employment Growth % */}
-      <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
-        <h3 className="text-lg font-semibold text-foreground mb-1">Employment Growth Rate</h3>
-        <p className="text-xs text-muted-foreground mb-4">Month-over-month employment growth percentage (%)</p>
-        <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={filteredData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="label" tick={tickStyle} interval={xInterval} angle={-30} textAnchor="end" height={50} />
-              <YAxis tick={tickStyle} tickFormatter={v => `${v}%`} />
-              <Tooltip contentStyle={tooltipStyle} labelStyle={labelStyle} itemStyle={itemStyle} formatter={(v: number) => [`${v > 0 ? "+" : ""}${v.toFixed(2)}%`]} />
-              <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 4" />
-              <Line type="monotone" dataKey="employmentGrowthPercent" name="Growth %" stroke="hsl(var(--chart-5))" strokeWidth={2} dot={false} activeDot={{ r: 5 }} />
-            </LineChart>
+                <YAxis tick={tickStyle} tickFormatter={v => `${v > 0 ? "+" : ""}${v}k`} />
+                <Tooltip contentStyle={tooltipStyle} labelStyle={labelStyle}
+                  formatter={(v: number) => [`${v > 0 ? "+" : ""}${v.toFixed(1)}k`, "Job Change"]} />
+                <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeWidth={1.5} />
+                <Bar dataKey="change" name="Job Change" radius={[2, 2, 0, 0]} fill="hsl(var(--chart-1))" />
+              </ComposedChart>
+            )}
           </ResponsiveContainer>
         </div>
+        <p className="text-xs text-muted-foreground mt-3 text-center">
+          {activeTab === "unemployment"  && "The dashed line marks the pre-COVID baseline average of 3.3%"}
+          {activeTab === "workforce"     && "Gap between Labour Force and Employed lines represents unemployment count"}
+          {activeTab === "participation" && "Dashed line marks the 70% participation target"}
+          {activeTab === "change"        && "Month-over-month change in total employed persons (thousands)"}
+        </p>
       </div>
     </motion.div>
   );

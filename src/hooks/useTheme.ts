@@ -10,6 +10,8 @@ export function useTheme() {
 
   useEffect(() => {
     const root = document.documentElement;
+    root.classList.add("theme-transitioning");
+    setTimeout(() => root.classList.remove("theme-transitioning"), 300);
     if (isDark) {
       root.classList.add('dark');
       localStorage.setItem('theme', 'dark');
@@ -19,7 +21,7 @@ export function useTheme() {
     }
   }, [isDark]);
 
-  const toggle = () => setIsDark(!isDark);
+  const toggle = () => setIsDark(prev => !prev);
 
   return { isDark, toggle };
 }

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTheme } from "@/hooks/useTheme";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import KPICards from "@/components/dashboard/KPICards";
@@ -11,17 +11,10 @@ import RegionalJobsMap from "@/components/dashboard/RegionalJobsMap";
 import DataInsightCards from "@/components/dashboard/DataInsightCards";
 import LabourHealthScore from "@/components/dashboard/LabourHealthScore";
 import StoryMode from "@/components/dashboard/StoryMode";
-import TrendAlerts from "@/components/dashboard/TrendAlerts";
 import { motion } from "framer-motion";
-import { TrendingUp, Lightbulb, MapPin, Briefcase, Globe } from "lucide-react";
+import { TrendingUp, Lightbulb, MapPin, Briefcase, Globe, Users } from "lucide-react";
 
-const sectionMap: Record<string, string> = {
-  snapshot: "section-snapshot",
-  trends: "section-trends",
-  sectors: "section-sectors",
-  underemployment: "section-underemployment",
-  states: "section-states",
-};
+const sectionIds = ["snapshot", "trends", "sectors", "underemployment", "states"];
 
 const Index = () => {
   const { isDark, toggle } = useTheme();
@@ -29,65 +22,144 @@ const Index = () => {
 
   const handleSectionClick = useCallback((section: string) => {
     setActiveSection(section);
-    const el = document.getElementById(sectionMap[section]);
-    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const el = document.getElementById(`section-${section}`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
-  return (
-    <div className="min-h-screen bg-background transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8 space-y-8 md:space-y-12">
+  useEffect(() => {
+  const observers: IntersectionObserver[] = [];
+  const sections = ["snapshot", "trends", "sectors", "underemployment", "states"];
+  
+  sections.forEach(id => {
+    const el = document.getElementById(`section-${id}`);
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setActiveSection(id);
+      },
+      { threshold: 0, rootMargin: "-30% 0px -60% 0px" }
+    );
+    observer.observe(el);
+    observers.push(observer);
+  });
+  
+  return () => observers.forEach(o => o.disconnect());
+}, []);
 
-        <div className="sticky top-0 z-50">
-          <DashboardHeader isDark={isDark} toggleTheme={toggle} activeSection={activeSection} onSectionClick={handleSectionClick} />
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 space-y-6">
+
+        {/* Header */}
+        <div className="sticky top-4 z-50">
+          <DashboardHeader
+            isDark={isDark}
+            toggleTheme={toggle}
+            activeSection={activeSection}
+            onSectionClick={handleSectionClick}
+          />
         </div>
 
         {/* Hero */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="text-center py-6 space-y-4"
+          transition={{ delay: 0.2, duration: 0.6 }}
+          className="relative rounded-2xl overflow-hidden border border-border"
+          style={{
+            background: "linear-gradient(135deg, hsl(var(--primary)/0.12) 0%, hsl(var(--card)) 50%, hsl(var(--accent)/0.08) 100%)",
+          }}
         >
-          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">
-            Malaysia Labour Market<br />& Employment Dashboard
-          </h2>
-          <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
-            Explore Malaysia's employment trends, sector opportunities, and regional differences — made simple for everyone. 🇲🇾
-          </p>
-          <div className="flex justify-center">
-            <StoryMode />
+          <div className="absolute inset-0 opacity-[0.04]"
+            style={{
+              backgroundImage: "linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)",
+              backgroundSize: "40px 40px",
+            }}
+          />
+          <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+          <div className="absolute bottom-0 left-1/3 w-60 h-60 bg-accent/10 rounded-full blur-3xl translate-y-1/2 pointer-events-none" />
+
+          <div className="relative z-10 px-8 md:px-14 py-12 md:py-16 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/8 mb-6"
+            >
+              <span className="text-sm">🇲🇾</span>
+              <span className="text-xs font-semibold text-primary tracking-widest uppercase">
+                Official DOSM Data · Updated Monthly
+              </span>
+            </motion.div>
+
+            <motion.h2
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground leading-[1.1] mb-4 tracking-tight"
+            >
+              Malaysia's Jobs.<br />
+              <span className="text-primary">By the Numbers.</span>
+            </motion.h2>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="text-sm md:text-base text-muted-foreground max-w-lg mx-auto mb-8 leading-relaxed"
+            >
+              Employment trends, sector shifts, state disparities and skills mismatch —
+              Malaysia's labour market, made clear.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="flex justify-center"
+            >
+              <StoryMode />
+            </motion.div>
+
+            <div className="flex justify-center gap-1.5 mt-8">
+              {[...Array(5)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="w-1.5 h-1.5 rounded-full bg-primary/30"
+                  animate={{ opacity: [0.3, 1, 0.3] }}
+                  transition={{ duration: 2, repeat: Infinity, delay: i * 0.2 }}
+                />
+              ))}
+            </div>
           </div>
         </motion.div>
 
-        {/* Trend Alerts */}
-        <section>
-          <TrendAlerts />
-        </section>
-
-        {/* Labour Health Score */}
-        <section>
+        {/* Labour Health Index */}
+        <section id="section-snapshot">
           <LabourHealthScore />
         </section>
 
-        {/* Did You Know? Insight Cards */}
+        {/* Data Insights */}
         <section>
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1.5 h-6 rounded-full bg-primary" />
-            <h2 className="text-lg font-semibold text-foreground">💡 Data Insights</h2>
+            <Lightbulb className="h-5 w-5 text-primary" />
+            <span className="text-sm text-muted-foreground">What the data is telling us</span>
           </div>
           <DataInsightCards />
         </section>
 
-        {/* Section 1: KPI Snapshot */}
-        <section id="section-snapshot">
+        {/* KPI Cards */}
+        <section>
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1.5 h-6 rounded-full bg-primary" />
-            <h2 className="text-lg font-semibold text-foreground">Key Labour Market Snapshot</h2>
+            <TrendingUp className="h-5 w-5 text-primary" />
+            <span className="text-sm text-muted-foreground">Key Labour Market Snapshot</span>
           </div>
           <KPICards />
         </section>
 
-        {/* Section 2: Trends */}
+        {/* Trend Charts */}
         <section id="section-trends">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1.5 h-6 rounded-full bg-secondary" />
@@ -97,11 +169,11 @@ const Index = () => {
           <TrendCharts />
         </section>
 
-        {/* Section 3: Sector */}
+        {/* Sector Chart */}
         <section id="section-sectors">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1.5 h-6 rounded-full bg-accent" />
-            <Lightbulb className="h-5 w-5 text-accent" />
+            <Globe className="h-5 w-5 text-accent" />
             <span className="text-sm text-muted-foreground">Where are the job opportunities?</span>
           </div>
           <SectorChart />
@@ -117,49 +189,41 @@ const Index = () => {
           <InDemandChart />
         </section>
 
-        {/* Section 4: Underemployment */}
+        {/* Underemployment */}
         <section id="section-underemployment">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-1.5 h-6 rounded-full bg-primary" />
+            <Users className="h-5 w-5 text-primary" />
+            <span className="text-sm text-muted-foreground">Are graduates working in the right jobs?</span>
+          </div>
           <UnderemploymentCharts />
         </section>
 
-        {/* Section 5: State-Level */}
+        {/* State Map */}
         <section id="section-states">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-1.5 h-6 rounded-full bg-primary" />
-            <MapPin className="h-5 w-5 text-primary" />
+            <div className="w-1.5 h-6 rounded-full bg-accent" />
+            <MapPin className="h-5 w-5 text-accent" />
             <span className="text-sm text-muted-foreground">How does your state compare?</span>
           </div>
           <StateMap />
         </section>
 
-        {/* Section 6: Regional Job Opportunities */}
+        {/* Regional Opportunity Index */}
         <section>
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-1.5 h-6 rounded-full bg-accent" />
-            <Globe className="h-5 w-5 text-accent" />
-            <span className="text-sm text-muted-foreground">Where are the best job opportunities by region?</span>
+            <div className="w-1.5 h-6 rounded-full bg-secondary" />
+            <MapPin className="h-5 w-5 text-secondary" />
+            <span className="text-sm text-muted-foreground">Which state offers the best opportunities?</span>
           </div>
           <RegionalJobsMap />
         </section>
 
         {/* Footer */}
-        <motion.footer
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.5 }}
-          className="rounded-2xl bg-card border border-border p-6 md:p-8 text-center shadow-sm"
-        >
-          <p className="text-xl md:text-2xl font-bold text-foreground mb-2">
-            Data → Insight → Better Decisions
-          </p>
-          <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-            Understanding the labour market helps everyone — from students choosing a career path
-            to policymakers designing better programs. Knowledge empowers better employment outcomes for all Malaysians. 🇲🇾
-          </p>
-          <p className="text-xs text-muted-foreground mt-4">
-            Source: Department of Statistics Malaysia (DOSM) • Y-Axis Job Outlook Malaysia
-          </p>
-        </motion.footer>
+        <footer className="text-center py-6 text-xs text-muted-foreground border-t border-border">
+          <p>Data sourced from <a href="https://open.dosm.gov.my" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">DOSM Open Data</a> · Updated monthly · Built for Malaysia 🇲🇾</p>
+        </footer>
+
       </div>
     </div>
   );

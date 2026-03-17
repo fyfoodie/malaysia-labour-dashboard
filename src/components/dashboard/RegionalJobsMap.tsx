@@ -1,196 +1,391 @@
-import { useState, useEffect } from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
-import { motion } from "framer-motion";
-import { regionalJobs } from "@/data/labourData";
+import { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useLabourData } from "@/context/LabourDataContext";
+import {
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell,
+} from "recharts";
+import { TrendingUp, DollarSign, AlertCircle, Star } from "lucide-react";
 
-const DEMAND_COLORS: Record<string, string> = {
-  "Kuala Lumpur": "hsl(0, 70%, 55%)",
-  "Selangor": "hsl(15, 80%, 55%)",
-  "Penang": "hsl(0, 80%, 50%)",
-  "Johor": "hsl(25, 80%, 55%)",
-  "Sarawak": "hsl(45, 80%, 55%)",
-  "Sabah": "hsl(45, 80%, 55%)",
-  "Perak": "hsl(80, 50%, 50%)",
-  "Melaka": "hsl(80, 50%, 50%)",
-  "Negeri Sembilan": "hsl(80, 50%, 50%)",
-};
-
-const GEO_NAME_MAP: Record<string, string> = {
-  "Kuala Lumpur": "W.P. Kuala Lumpur",
-  "Penang": "Pulau Pinang",
-};
-
-interface GeoFeature {
-  type: string;
-  properties: { name: string };
-  geometry: { type: string; coordinates: number[][][][] };
+interface StateEconData {
+  state: string;
+  medianIncome: number;
+  meanIncome: number;
+  gini: number;
+  povertyRate: number;
+  unemploymentRate: number;
+  participationRate: number;
+  opportunityScore: number;
 }
 
+const PROXY = (id: string, limit = 500) =>
+  `https://corsproxy.io/?${encodeURIComponent(`https://api.data.gov.my/data-catalogue?id=${id}&limit=${limit}`)}`;
+
+async function fetchJSON(url: string): Promise<any[]> {
+  try {
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return Array.isArray(json) ? json : [];
+  } catch {
+    return [];
+  }
+}
+
+const scoreColor = (score: number) => {
+  if (score >= 75) return "#22c55e";
+  if (score >= 60) return "#84cc16";
+  if (score >= 45) return "#eab308";
+  if (score >= 30) return "#f97316";
+  return "#ef4444";
+};
+
 const RegionalJobsMap = () => {
-  const [geoData, setGeoData] = useState<GeoFeature[]>([]);
-  const [hoveredState, setHoveredState] = useState<string | null>(null);
+  const { data: labourData } = useLabourData();
+  const [incomeData, setIncomeData] = useState<any[]>([]);
+  const [hiesData,   setHiesData]   = useState<any[]>([]);
+  const [loading,    setLoading]    = useState(true);
+  const [selected,   setSelected]   = useState<string | null>(null);
+  const [sortBy,     setSortBy]     = useState<"opportunityScore" | "medianIncome" | "unemploymentRate" | "povertyRate">("opportunityScore");
 
   useEffect(() => {
-    fetch("/malaysia-states.geojson")
-      .then(r => r.json())
-      .then(data => setGeoData(data.features || []))
-      .catch(() => {});
+    Promise.all([
+      fetchJSON(PROXY("hh_income_state", 500)),
+      fetchJSON(PROXY("hies_state", 200)),
+    ]).then(([inc, hies]) => {
+      setIncomeData(inc);
+      setHiesData(hies);
+      setLoading(false);
+    });
   }, []);
 
-  const barData = regionalJobs.map(r => ({
-    state: r.state,
-    avgSalary: (r.salaryMin + r.salaryMax) / 2,
-    salaryMin: r.salaryMin,
-    salaryMax: r.salaryMax,
-  })).sort((a, b) => b.avgSalary - a.avgSalary);
+  const stateData = useMemo<StateEconData[]>(() => {
+    if (!labourData?.state?.length || !incomeData.length) return [];
 
-  const projectPoint = (lon: number, lat: number): [number, number] => {
-    const minLon = 99.5, maxLon = 119.5, minLat = 0.8, maxLat = 7.5;
-    const x = ((lon - minLon) / (maxLon - minLon)) * 800;
-    const y = 400 - ((lat - minLat) / (maxLat - minLat)) * 400;
-    return [x, y];
-  };
+    const lfsSorted  = [...labourData.state].sort((a: any, b: any) => a.date.localeCompare(b.date));
+    const latestDate = lfsSorted[lfsSorted.length - 1]?.date;
+    const latestLFS  = lfsSorted.filter((d: any) => d.date === latestDate);
 
-  const getPathFromCoords = (coords: number[][]) =>
-    coords.map((point, i) => {
-      const [x, y] = projectPoint(point[0], point[1]);
-      return `${i === 0 ? 'M' : 'L'}${x},${y}`;
-    }).join(' ') + 'Z';
-
-  const getStatePath = (geometry: GeoFeature['geometry']) => {
-    const paths: string[] = [];
-    if (geometry.type === 'MultiPolygon') {
-      geometry.coordinates.forEach(polygon => polygon.forEach(ring => paths.push(getPathFromCoords(ring))));
-    } else if (geometry.type === 'Polygon') {
-      (geometry.coordinates as unknown as number[][][]).forEach(ring => paths.push(getPathFromCoords(ring)));
-    }
-    return paths.join(' ');
-  };
-
-  const findRegionalData = (geoName: string) => {
-    return regionalJobs.find(r => {
-      const mapped = GEO_NAME_MAP[r.state] || r.state;
-      return geoName.toLowerCase().includes(mapped.toLowerCase()) || mapped.toLowerCase().includes(geoName.toLowerCase())
-        || geoName.toLowerCase().includes(r.state.toLowerCase()) || r.state.toLowerCase().includes(geoName.toLowerCase());
+    const incByState: Record<string, any> = {};
+    incomeData.forEach((d: any) => {
+      const s = d.state;
+      if (!incByState[s] || d.date > incByState[s].date) incByState[s] = d;
     });
-  };
 
-  const getStateColor = (geoName: string) => {
-    const data = findRegionalData(geoName);
-    if (!data) return "hsl(var(--muted))";
-    return DEMAND_COLORS[data.state] || "hsl(var(--muted))";
-  };
+    const hiesByState: Record<string, any> = {};
+    hiesData.forEach((d: any) => {
+      const s = d.state;
+      if (!hiesByState[s] || d.date > hiesByState[s].date) hiesByState[s] = d;
+    });
+
+    const results: StateEconData[] = [];
+    latestLFS.forEach((lfs: any) => {
+      const stateName = lfs.state;
+      const inc  = incByState[stateName];
+      const hies = hiesByState[stateName];
+      if (!inc) return;
+
+      const medianIncome     = inc.income_median  ?? inc.median ?? 0;
+      const meanIncome       = inc.income_mean    ?? inc.mean   ?? 0;
+      const gini             = hies?.gini         ?? 0;
+      const povertyRate      = hies?.poverty_rate ?? hies?.incidence_poverty ?? 0;
+      const unemploymentRate = lfs.u_rate         ?? 0;
+      const participationRate = lfs.p_rate        ?? 0;
+
+      const maxMedian = 12000;
+      const incScore  = Math.min((medianIncome / maxMedian) * 100, 100);
+      const uScore    = Math.max(0, 100 - (unemploymentRate / 8) * 100);
+      const povScore  = Math.max(0, 100 - (povertyRate / 20) * 100);
+      const giniScore = Math.max(0, 100 - ((gini - 0.3) / 0.25) * 100);
+      const partScore = Math.min(((participationRate - 55) / 25) * 100, 100);
+
+      const opportunityScore = Math.round(
+        incScore * 0.35 + uScore * 0.25 + povScore * 0.20 + giniScore * 0.10 + partScore * 0.10
+      );
+
+      results.push({
+        state: stateName, medianIncome, meanIncome, gini, povertyRate,
+        unemploymentRate, participationRate,
+        opportunityScore: Math.max(0, Math.min(100, opportunityScore)),
+      });
+    });
+
+    return results.sort((a, b) => b.opportunityScore - a.opportunityScore);
+  }, [labourData, incomeData, hiesData]);
+
+  const sorted = useMemo(() =>
+    [...stateData].sort((a, b) =>
+      sortBy === "unemploymentRate" || sortBy === "povertyRate"
+        ? a[sortBy] - b[sortBy]
+        : b[sortBy] - a[sortBy]
+    )
+  , [stateData, sortBy]);
+
+  const selectedData = selected ? stateData.find(d => d.state === selected) : null;
+
+  const radarData = selectedData ? [
+    { metric: "Income",        value: Math.min((selectedData.medianIncome / 12000) * 100, 100) },
+    { metric: "Employment",    value: Math.max(0, 100 - (selectedData.unemploymentRate / 8) * 100) },
+    { metric: "Participation", value: Math.min(((selectedData.participationRate - 55) / 25) * 100, 100) },
+    { metric: "Low Poverty",   value: Math.max(0, 100 - (selectedData.povertyRate / 20) * 100) },
+    { metric: "Equality",      value: selectedData.gini ? Math.max(0, 100 - ((selectedData.gini - 0.3) / 0.25) * 100) : 50 },
+  ] : [];
+
+  if (loading || !stateData.length) {
+    return (
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+        className="rounded-2xl bg-card border border-border p-5 shadow-sm">
+        <h2 className="text-xl font-bold text-foreground mb-1">State Economic Opportunity Index</h2>
+        <p className="text-sm text-muted-foreground mb-4">Loading live data from DOSM...</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[...Array(8)].map((_, i) => <div key={i} className="h-20 rounded-xl bg-muted animate-pulse" />)}
+        </div>
+      </motion.div>
+    );
+  }
+
+  const top3    = sorted.slice(0, 3);
+  const bottom3 = [...sorted].reverse().slice(0, 3);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.55, duration: 0.5 }}
-      className="rounded-2xl bg-card border border-border p-5 md:p-6 shadow-sm"
+      className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden"
     >
-      <div className="mb-4">
-        <h2 className="text-2xl font-bold text-foreground">Regions with Strong Job Opportunities</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Explore which regions in Malaysia offer the best job demand and salary ranges.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Map */}
-        <div>
-          <h3 className="text-sm font-semibold text-foreground mb-3">Job Demand Map</h3>
-          {geoData.length > 0 ? (
-            <div className="relative">
-              <svg viewBox="0 0 800 400" className="w-full h-auto">
-                {geoData.map((feature, i) => {
-                  const isHovered = hoveredState === feature.properties.name;
-                  const color = getStateColor(feature.properties.name);
-                  return (
-                    <path key={i} d={getStatePath(feature.geometry)} fill={color}
-                      stroke="hsl(var(--background))" strokeWidth={isHovered ? 2 : 0.5}
-                      opacity={hoveredState && !isHovered ? 0.4 : 1}
-                      className="cursor-pointer transition-all duration-200"
-                      onMouseEnter={() => setHoveredState(feature.properties.name)}
-                      onMouseLeave={() => setHoveredState(null)}
-                    />
-                  );
-                })}
-              </svg>
-              {hoveredState && (() => {
-                const rd = findRegionalData(hoveredState);
-                if (!rd) return (
-                  <div className="absolute top-2 left-2 bg-card border border-border rounded-xl p-3 shadow-lg text-sm z-10">
-                    <p className="font-semibold text-foreground">{hoveredState}</p>
-                    <p className="text-muted-foreground text-xs">No specific data available</p>
-                  </div>
-                );
-                return (
-                  <div className="absolute top-2 left-2 bg-card border border-border rounded-xl p-3 shadow-lg text-sm z-10 max-w-[260px]">
-                    <p className="font-semibold text-foreground">{rd.state}</p>
-                    <p className="text-muted-foreground text-xs mt-1">{rd.demand}</p>
-                    <p className="text-muted-foreground text-xs mt-1">
-                      Salary: <strong className="text-foreground">RM {(rd.salaryMin / 1000).toFixed(0)}k – RM {(rd.salaryMax / 1000).toFixed(0)}k</strong> / year
-                    </p>
-                  </div>
-                );
-              })()}
-              <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground justify-center flex-wrap">
-                <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm" style={{ backgroundColor: "hsl(0, 70%, 55%)" }} /> High Demand</div>
-                <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm" style={{ backgroundColor: "hsl(25, 80%, 55%)" }} /> Growing</div>
-                <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm" style={{ backgroundColor: "hsl(45, 80%, 55%)" }} /> Moderate</div>
-                <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm" style={{ backgroundColor: "hsl(80, 50%, 50%)" }} /> Steady</div>
-              </div>
-            </div>
-          ) : (
-            <div className="h-[300px] flex items-center justify-center text-muted-foreground">Loading map...</div>
-          )}
+      {/* Header */}
+      <div className="p-5 border-b border-border">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-bold text-foreground">State Economic Opportunity Index</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Composite score: household income, unemployment, poverty & equality — live from DOSM
+            </p>
+          </div>
+          <div className="flex gap-1.5 flex-wrap">
+            {([
+              { key: "opportunityScore", label: "Score"     },
+              { key: "medianIncome",     label: "Income"    },
+              { key: "unemploymentRate", label: "Unemploy." },
+              { key: "povertyRate",      label: "Poverty"   },
+            ] as const).map(s => (
+              <button key={s.key} onClick={() => setSortBy(s.key)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  sortBy === s.key
+                    ? "bg-foreground text-background shadow-md"
+                    : "bg-muted border border-border text-foreground hover:bg-muted/80"
+                }`}>
+                {s.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Salary bar chart */}
-        <div>
-          <h3 className="text-sm font-semibold text-foreground mb-3">Average Salary by Region (MYR/year)</h3>
-          <div className="h-[350px]">
+        {/* Top & Bottom */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+          <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Star className="h-3.5 w-3.5 text-green-500" />
+              <span className="text-xs font-semibold text-foreground">Top Opportunity States</span>
+            </div>
+            {top3.map((s, i) => (
+              <div key={s.state} className="flex items-center justify-between py-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground w-4">{i + 1}</span>
+                  <span className="text-xs font-medium text-foreground">{s.state}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-12 rounded-full bg-muted overflow-hidden">
+                    <div className="h-full rounded-full bg-green-500" style={{ width: `${s.opportunityScore}%` }} />
+                  </div>
+                  <span className="text-xs font-bold text-green-500">{s.opportunityScore}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="h-3.5 w-3.5 text-red-500" />
+              <span className="text-xs font-semibold text-foreground">Needs Attention</span>
+            </div>
+            {bottom3.map((s, i) => (
+              <div key={s.state} className="flex items-center justify-between py-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground w-4">{i + 1}</span>
+                  <span className="text-xs font-medium text-foreground">{s.state}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-12 rounded-full bg-muted overflow-hidden">
+                    <div className="h-full rounded-full bg-red-500" style={{ width: `${s.opportunityScore}%` }} />
+                  </div>
+                  <span className="text-xs font-bold text-red-500">{s.opportunityScore}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Bar chart + detail */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
+        <div className="lg:col-span-2 p-5 border-b lg:border-b-0 lg:border-r border-border">
+          <h3 className="text-xs font-semibold text-foreground mb-3">
+            {sortBy === "opportunityScore"  && "Opportunity Score by State"}
+            {sortBy === "medianIncome"      && "Median Monthly Household Income (RM)"}
+            {sortBy === "unemploymentRate"  && "Unemployment Rate (%) — lower is better"}
+            {sortBy === "povertyRate"       && "Poverty Incidence (%) — lower is better"}
+          </h3>
+          <div className="h-[380px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barData} layout="vertical" margin={{ left: 10 }}>
+              <BarChart data={sorted} layout="vertical" margin={{ left: 8, right: 40 }}
+                onClick={(e) => e?.activePayload && setSelected(
+                  s => s === e.activePayload![0].payload.state ? null : e.activePayload![0].payload.state
+                )}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-                  tickFormatter={(v) => `RM${(v/1000).toFixed(0)}k`} />
-                <YAxis type="category" dataKey="state" tick={{ fontSize: 11, fill: "hsl(var(--foreground))" }} width={110} />
+                  tickFormatter={v =>
+                    sortBy === "medianIncome" ? `RM${(v/1000).toFixed(0)}k` : `${v}${sortBy === "opportunityScore" ? "" : "%"}`
+                  } />
+                <YAxis type="category" dataKey="state" tick={{ fontSize: 10, fill: "hsl(var(--foreground))" }} width={115} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px", color: "hsl(var(--foreground))" }}
-                  formatter={(value: number, name: string) => {
-                    const item = barData.find(d => d.avgSalary === value);
-                    return [`RM ${item?.salaryMin?.toLocaleString()} – RM ${item?.salaryMax?.toLocaleString()}`, "Salary Range"];
-                  }}
-                  labelStyle={{ fontWeight: 600, color: "hsl(var(--foreground))" }}
+                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "12px" }}
+                  formatter={(value: number) => [
+                    sortBy === "medianIncome" ? `RM ${value.toLocaleString()}` : `${value}${sortBy === "opportunityScore" ? "/100" : "%"}`,
+                    sortBy === "opportunityScore" ? "Score" : sortBy === "medianIncome" ? "Median Income" : sortBy === "unemploymentRate" ? "Unemployment" : "Poverty Rate"
+                  ]}
+                  labelStyle={{ fontWeight: 600 }}
+                  cursor={{ fill: "hsl(var(--muted)/0.3)" }}
                 />
-                <Bar dataKey="avgSalary" radius={[0, 6, 6, 0]} barSize={20}>
-                  {barData.map((entry) => (
-                    <Cell key={entry.state} fill={DEMAND_COLORS[entry.state] || "hsl(var(--chart-1))"} />
+                <Bar dataKey={sortBy} radius={[0, 6, 6, 0]} barSize={16}>
+                  {sorted.map((entry) => (
+                    <Cell key={entry.state}
+                      fill={scoreColor(entry.opportunityScore)}
+                      opacity={selected && selected !== entry.state ? 0.4 : 1}
+                    />
                   ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
+          <p className="text-xs text-muted-foreground mt-2 text-center">Click any bar to see full state profile</p>
+        </div>
+
+        {/* Detail panel */}
+        <div className="p-5 flex flex-col">
+          <AnimatePresence mode="wait">
+            {selectedData ? (
+              <motion.div key={selectedData.state}
+                initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+                className="flex flex-col gap-3 h-full"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-bold text-foreground">{selectedData.state}</h3>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <span className="text-xs text-muted-foreground">Score:</span>
+                      <span className="text-sm font-bold" style={{ color: scoreColor(selectedData.opportunityScore) }}>
+                        {selectedData.opportunityScore}/100
+                      </span>
+                    </div>
+                  </div>
+                  <button onClick={() => setSelected(null)}
+                    className="text-xs text-muted-foreground border border-border rounded-full px-2 py-0.5 hover:text-foreground">
+                    ✕
+                  </button>
+                </div>
+
+                <div className="h-[180px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart data={radarData}>
+                      <PolarGrid stroke="hsl(var(--border))" />
+                      <PolarAngleAxis dataKey="metric" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} />
+                      <Radar dataKey="value" stroke={scoreColor(selectedData.opportunityScore)}
+                        fill={scoreColor(selectedData.opportunityScore)} fillOpacity={0.25} strokeWidth={2} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 mt-auto">
+                  {[
+                    { label: "Median Income",  value: `RM ${selectedData.medianIncome.toLocaleString()}`,  color: "text-green-500"  },
+                    { label: "Mean Income",    value: `RM ${selectedData.meanIncome.toLocaleString()}`,    color: "text-blue-500"   },
+                    { label: "Unemployment",   value: `${selectedData.unemploymentRate}%`,                 color: selectedData.unemploymentRate > 4 ? "text-red-500" : "text-green-500" },
+                    { label: "Participation",  value: `${selectedData.participationRate}%`,                color: "text-blue-500"   },
+                    { label: "Poverty Rate",   value: selectedData.povertyRate ? `${selectedData.povertyRate}%` : "N/A", color: "text-orange-500" },
+                    { label: "Gini Index",     value: selectedData.gini ? selectedData.gini.toFixed(3) : "N/A", color: "text-purple-500" },
+                  ].map(stat => (
+                    <div key={stat.label} className="rounded-lg bg-muted/40 border border-border p-2">
+                      <p className="text-xs text-muted-foreground">{stat.label}</p>
+                      <p className={`text-xs font-bold ${stat.color}`}>{stat.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center h-full text-center gap-3 py-8"
+              >
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                  <Star className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm font-medium text-foreground">Select a state</p>
+                <p className="text-xs text-muted-foreground">Click any bar to see full economic profile with radar breakdown</p>
+                <div className="mt-3 space-y-1 w-full">
+                  {[
+                    { range: "75–100", label: "High Opportunity",  color: "#22c55e" },
+                    { range: "60–74",  label: "Good Opportunity",  color: "#84cc16" },
+                    { range: "45–59",  label: "Moderate",          color: "#eab308" },
+                    { range: "30–44",  label: "Needs Improvement", color: "#f97316" },
+                    { range: "0–29",   label: "Challenging",       color: "#ef4444" },
+                  ].map(l => (
+                    <div key={l.range} className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: l.color }} />
+                        <span className="text-muted-foreground">{l.label}</span>
+                      </div>
+                      <span className="text-muted-foreground">{l.range}</span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
-      {/* Detail cards */}
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {regionalJobs.map(r => (
-          <div key={r.state} className="rounded-xl border border-border p-3 bg-muted/30 hover:bg-muted/50 transition-colors">
-            <p className="font-semibold text-foreground text-sm">{r.state}</p>
-            <p className="text-xs text-muted-foreground mt-1">{r.demand}</p>
-            <p className="text-xs font-medium text-foreground mt-1">
-              RM {(r.salaryMin / 1000).toFixed(0)}k – RM {(r.salaryMax / 1000).toFixed(0)}k / year
-            </p>
-          </div>
-        ))}
+      {/* State cards */}
+      <div className="p-5 border-t border-border">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+          {sorted.slice(0, 8).map(s => (
+            <motion.div key={s.state} whileHover={{ scale: 1.02 }}
+              onClick={() => setSelected(prev => prev === s.state ? null : s.state)}
+              className={`rounded-xl border p-2.5 cursor-pointer transition-all ${
+                selected === s.state ? "border-primary bg-primary/5" : "border-border bg-card hover:bg-muted/30"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-foreground truncate max-w-[75%]" style={{ fontSize: "10px" }}>{s.state}</span>
+                <span className="text-xs font-bold" style={{ color: scoreColor(s.opportunityScore), fontSize: "10px" }}>{s.opportunityScore}</span>
+              </div>
+              <div className="h-1 rounded-full bg-muted overflow-hidden">
+                <div className="h-full rounded-full" style={{ width: `${s.opportunityScore}%`, backgroundColor: scoreColor(s.opportunityScore) }} />
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
 
-      <p className="text-xs text-muted-foreground mt-4">
-        Source: <a href="https://www.y-axis.com/job-outlook/malaysia/" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">Y-Axis Job Outlook Malaysia</a>
-      </p>
+      <div className="px-5 pb-4">
+        <p className="text-xs text-muted-foreground">
+          Sources:{" "}
+          <a href="https://open.dosm.gov.my/data-catalogue/hh_income_state" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">DOSM Household Income</a>
+          {" · "}
+          <a href="https://open.dosm.gov.my/data-catalogue/hies_state" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">HIES Poverty & Gini</a>
+          {" · "}
+          <a href="https://open.dosm.gov.my/data-catalogue/lfs_qtr_state" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">LFS Quarterly by State</a>
+        </p>
+      </div>
     </motion.div>
   );
 };

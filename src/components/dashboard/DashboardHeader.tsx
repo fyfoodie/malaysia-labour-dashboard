@@ -11,11 +11,11 @@ interface DashboardHeaderProps {
 }
 
 const navItems = [
-  { id: "snapshot", label: "Snapshot", icon: BarChart3 },
-  { id: "trends", label: "Trends", icon: TrendingUp },
-  { id: "sectors", label: "Sectors", icon: PieChart },
-  { id: "underemployment", label: "Underemployment", icon: Users },
-  { id: "states", label: "States", icon: MapPin },
+  { id: "snapshot",        label: "Snapshot",        icon: BarChart3  },
+  { id: "trends",          label: "Trends",          icon: TrendingUp },
+  { id: "sectors",         label: "Sectors",         icon: PieChart   },
+  { id: "underemployment", label: "Underemployment", icon: Users      },
+  { id: "states",          label: "States",          icon: MapPin     },
 ];
 
 const DashboardHeader = ({ isDark, toggleTheme, activeSection = "snapshot", onSectionClick }: DashboardHeaderProps) => {
@@ -28,14 +28,8 @@ const DashboardHeader = ({ isDark, toggleTheme, activeSection = "snapshot", onSe
 
   const formatter = new Intl.DateTimeFormat("en-MY", {
     timeZone: "Asia/Kuala_Lumpur",
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
+    weekday: "short", day: "numeric", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true,
   });
 
   return (
@@ -45,9 +39,7 @@ const DashboardHeader = ({ isDark, toggleTheme, activeSection = "snapshot", onSe
       transition={{ duration: 0.5 }}
       className="rounded-2xl bg-card/95 backdrop-blur-md border border-border shadow-sm overflow-hidden"
     >
-      {/* Top bar */}
       <div className="flex items-center justify-between px-4 md:px-6 py-3">
-        {/* Logo + Title */}
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary/10">
             <BarChart3 className="h-5 w-5 text-primary" />
@@ -57,8 +49,6 @@ const DashboardHeader = ({ isDark, toggleTheme, activeSection = "snapshot", onSe
             <p className="text-xs text-muted-foreground">Employment Dashboard</p>
           </div>
         </div>
-
-        {/* Clock + Toggle */}
         <div className="flex items-center gap-3">
           <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground tabular-nums">
             <Clock className="h-3.5 w-3.5" />
@@ -67,8 +57,6 @@ const DashboardHeader = ({ isDark, toggleTheme, activeSection = "snapshot", onSe
           <ThemeToggle isDark={isDark} toggle={toggleTheme} />
         </div>
       </div>
-
-      {/* Nav tabs */}
       <div className="flex items-center gap-1 px-4 md:px-6 pb-3 overflow-x-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
