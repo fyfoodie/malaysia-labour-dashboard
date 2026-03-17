@@ -13,6 +13,7 @@ import LabourHealthScore from "@/components/dashboard/LabourHealthScore";
 import StoryMode from "@/components/dashboard/StoryMode";
 import { motion } from "framer-motion";
 import { TrendingUp, Lightbulb, MapPin, Briefcase, Globe, Users } from "lucide-react";
+import AIAnalyst from "@/components/dashboard/AIAnalyst";
 
 const sectionIds = ["snapshot", "trends", "sectors", "underemployment", "states"];
 
@@ -223,6 +224,8 @@ const Index = () => {
         <footer className="text-center py-6 text-xs text-muted-foreground border-t border-border">
           <p>Data sourced from <a href="https://open.dosm.gov.my" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">DOSM Open Data</a> · Updated monthly · Built for Malaysia 🇲🇾</p>
         </footer>
+
+        <AIAnalyst apiKey="AIzaSyCACjsWLrIPBj_27G9lWhYMr9ij197A1U0" />
 
       </div>
     </div>
