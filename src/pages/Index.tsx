@@ -10,6 +10,7 @@ import StateMap from "@/components/dashboard/StateMap";
 import RegionalJobsMap from "@/components/dashboard/RegionalJobsMap";
 import DataInsightCards from "@/components/dashboard/DataInsightCards";
 import LabourHealthScore from "@/components/dashboard/LabourHealthScore";
+import JobMarketHealth from "@/components/dashboard/JobMarketHealth";
 import StoryMode from "@/components/dashboard/StoryMode";
 import { motion } from "framer-motion";
 import { TrendingUp, Lightbulb, MapPin, Briefcase, Globe, Users } from "lucide-react";
