@@ -13,7 +13,7 @@ import LabourHealthScore from "@/components/dashboard/LabourHealthScore";
 import JobMarketHealth from "@/components/dashboard/JobMarketHealth";
 import StoryMode from "@/components/dashboard/StoryMode";
 import { motion } from "framer-motion";
-import { TrendingUp, Lightbulb, MapPin, Briefcase, Globe, Users } from "lucide-react";
+import { TrendingUp, Lightbulb, MapPin, Briefcase, Globe, Users, Target } from "lucide-react";
 import AIAnalyst from "@/components/dashboard/AIAnalyst";
 
 const sectionIds = ["snapshot", "trends", "sectors", "underemployment", "states"];
