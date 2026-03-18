@@ -221,6 +221,16 @@ const Index = () => {
           <RegionalJobsMap />
         </section>
 
+        {/* Job Market Health Checker */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-1.5 h-6 rounded-full bg-primary" />
+            <Target className="h-5 w-5 text-primary" />
+            <span className="text-sm text-muted-foreground">How good is the job market for you?</span>
+          </div>
+          <JobMarketHealth />
+        </section>
+
         {/* Footer */}
         <footer className="text-center py-6 text-xs text-muted-foreground border-t border-border">
           <p>Data sourced from <a href="https://open.dosm.gov.my" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">DOSM Open Data</a> · Updated monthly · Built for Malaysia 🇲🇾</p>
