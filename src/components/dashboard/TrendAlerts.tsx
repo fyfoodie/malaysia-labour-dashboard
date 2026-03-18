@@ -39,7 +39,7 @@ const TrendAlerts = () => {
     }
 
     // States with high unemployment
-    const highUnempStates = latestStateData.filter(s => s.unemploymentRate > 4);
+    const highUnempStates = latestStateData.filter(s => s.u_rate > 4);
     if (highUnempStates.length > 0) {
       result.push({
         type: "warning",

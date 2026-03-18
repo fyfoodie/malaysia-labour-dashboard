@@ -10,9 +10,10 @@ import StateMap from "@/components/dashboard/StateMap";
 import RegionalJobsMap from "@/components/dashboard/RegionalJobsMap";
 import DataInsightCards from "@/components/dashboard/DataInsightCards";
 import LabourHealthScore from "@/components/dashboard/LabourHealthScore";
+import JobMarketHealth from "@/components/dashboard/JobMarketHealth";
 import StoryMode from "@/components/dashboard/StoryMode";
 import { motion } from "framer-motion";
-import { TrendingUp, Lightbulb, MapPin, Briefcase, Globe, Users } from "lucide-react";
+import { TrendingUp, Lightbulb, MapPin, Briefcase, Globe, Users, Target } from "lucide-react";
 import AIAnalyst from "@/components/dashboard/AIAnalyst";
 
 const sectionIds = ["snapshot", "trends", "sectors", "underemployment", "states"];
@@ -218,6 +219,16 @@ const Index = () => {
             <span className="text-sm text-muted-foreground">Which state offers the best opportunities?</span>
           </div>
           <RegionalJobsMap />
+        </section>
+
+        {/* Job Market Health Checker */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-1.5 h-6 rounded-full bg-primary" />
+            <Target className="h-5 w-5 text-primary" />
+            <span className="text-sm text-muted-foreground">How good is the job market for you?</span>
+          </div>
+          <JobMarketHealth />
         </section>
 
         {/* Footer */}
