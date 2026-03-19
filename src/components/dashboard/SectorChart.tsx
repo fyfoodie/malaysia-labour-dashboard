@@ -27,6 +27,7 @@ type View = "snapshot" | "trend" | "shift";
 
 const SectorChart = () => {
   const { data, loading } = useLabourData();
+  const { t } = useLanguage();
   const [view, setView] = useState<View>("snapshot");
   const [hoveredSector, setHoveredSector] = useState<string | null>(null);
 
