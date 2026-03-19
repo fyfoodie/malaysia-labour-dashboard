@@ -261,11 +261,11 @@ const StateMap = () => {
                   </button>
                 </div>
                 {[
-                  { label: "Unemployment Rate", value: `${activeState.u_rate}%`,             color: getColor(activeState.u_rate, "u_rate") },
-                  { label: "Participation Rate", value: `${activeState.p_rate}%`,             color: getColor(activeState.p_rate, "p_rate") },
-                  { label: "Labour Force",       value: `${activeState.lf?.toLocaleString()}k`,      color: "#6366f1" },
-                  { label: "Employed",           value: `${activeState.employed?.toLocaleString()}k`, color: "#22c55e" },
-                  { label: "Unemployed",         value: `${activeState.unemployed?.toLocaleString()}k`, color: "#ef4444" },
+                  { label: t("state.unemploymentRate"), value: `${activeState.u_rate}%`,             color: getColor(activeState.u_rate, "u_rate") },
+                  { label: t("state.participationRate"), value: `${activeState.p_rate}%`,             color: getColor(activeState.p_rate, "p_rate") },
+                  { label: t("state.labourForce"),       value: `${activeState.lf?.toLocaleString()}k`,      color: "#6366f1" },
+                  { label: t("state.employed"),           value: `${activeState.employed?.toLocaleString()}k`, color: "#22c55e" },
+                  { label: t("state.unemployed"),         value: `${activeState.unemployed?.toLocaleString()}k`, color: "#ef4444" },
                 ].map(stat => (
                   <div key={stat.label} className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border">
                     <span className="text-sm text-muted-foreground">{stat.label}</span>
