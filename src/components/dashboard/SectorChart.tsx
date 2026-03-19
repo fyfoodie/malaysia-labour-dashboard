@@ -79,9 +79,9 @@ const SectorChart = () => {
   }
 
   const views: { key: View; label: string }[] = [
-    { key: "snapshot", label: `${latestYear} Snapshot` },
-    { key: "trend",    label: "Historical Trend"       },
-    { key: "shift",    label: "Structural Shift"       },
+    { key: "snapshot", label: `${latestYear} ${t("sectors.snapshot")}` },
+    { key: "trend",    label: t("sectors.historicalTrend")       },
+    { key: "shift",    label: t("sectors.structuralShift")       },
   ];
 
   return (
