@@ -4,6 +4,7 @@ import {
   MapPin, Briefcase, Target, TrendingUp, TrendingDown,
   Lightbulb, Search, Loader2, BarChart3, Activity,
 } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   Select,
   SelectContent,
