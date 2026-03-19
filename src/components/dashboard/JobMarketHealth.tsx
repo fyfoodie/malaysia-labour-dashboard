@@ -193,7 +193,7 @@ const JobMarketHealth = () => {
           <Select value={state} onValueChange={setState}>
             <SelectTrigger className="w-full sm:w-56 bg-muted/50 border-border backdrop-blur">
               <MapPin className="h-4 w-4 mr-2 text-primary" />
-              <SelectValue placeholder="Select state" />
+              <SelectValue placeholder={t("job.selectState")} />
             </SelectTrigger>
             <SelectContent>
               {STATES.map(s => (
