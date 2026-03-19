@@ -5,6 +5,7 @@ import {
 } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLabourData } from "@/context/LabourDataContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { Users, GraduationCap, TrendingDown, AlertTriangle } from "lucide-react";
 
 const tooltipStyle = {
