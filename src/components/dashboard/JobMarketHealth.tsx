@@ -241,9 +241,9 @@ const JobMarketHealth = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="text-center py-10 text-muted-foreground text-sm"
-            >
-              Select a location and industry to analyze the job market.
+              className="text-center py-10 text-muted-foreground text-sm">
+              {t("job.emptyState")}
+            </motion.div>
             </motion.div>
           )}
 
