@@ -120,10 +120,8 @@ const StateMap = () => {
       <div className="p-5 border-b border-border">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h2 className="text-xl font-bold text-foreground">State-Level Labour Market</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {latestMonth} {latestYear} — Official boundaries from DOSM GeoHub
-            </p>
+            <h2 className="text-xl font-bold text-foreground">{t("state.title")}</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">{latestMonth} {latestYear}</p>
           </div>
           <div className="flex gap-2 p-1 rounded-full bg-muted border border-border">
             {([
