@@ -244,7 +244,6 @@ const JobMarketHealth = () => {
               className="text-center py-10 text-muted-foreground text-sm">
               {t("job.emptyState")}
             </motion.div>
-            </motion.div>
           )}
 
           {/* ── Loading ── */}
