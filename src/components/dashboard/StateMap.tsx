@@ -231,11 +231,11 @@ const StateMap = () => {
 
               {/* Legend */}
               <div className="mt-3 flex items-center justify-center gap-1 flex-wrap">
-                <span className="text-xs text-muted-foreground mr-1">Low</span>
+                <span className="text-xs text-muted-foreground mr-1">{t("state.low")}</span>
                 {["#22c55e", "#84cc16", "#eab308", "#f97316", "#ef4444"].map((c, i) => (
                   <div key={i} className="w-6 h-3 rounded-sm" style={{ backgroundColor: c }} />
                 ))}
-                <span className="text-xs text-muted-foreground ml-1">High</span>
+                <span className="text-xs text-muted-foreground ml-1">{t("state.high")}</span>
               </div>
             </div>
           ) : (
