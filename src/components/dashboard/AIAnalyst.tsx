@@ -271,8 +271,8 @@ The user is asking about Malaysia's labour market. Answer helpfully and accurate
                   <Sparkles className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-foreground">AI Labour Analyst</p>
-                  <p className="text-xs text-muted-foreground">Live DOSM data + web search</p>
+                  <p className="text-sm font-bold text-foreground">{t("ai.title")}</p>
+                  <p className="text-xs text-muted-foreground">{t("ai.subtitle")}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
