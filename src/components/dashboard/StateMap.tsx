@@ -273,7 +273,7 @@ const StateMap = () => {
                   </div>
                 ))}
                 <div className="mt-2">
-                  <p className="text-xs text-muted-foreground mb-1">Unemployment vs national avg ({avgUnemployment}%)</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t("state.vsNational")} ({avgUnemployment}%)</p>
                   <div className="h-3 rounded-full bg-muted overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-500"
                       style={{
