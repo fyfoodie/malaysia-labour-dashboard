@@ -214,9 +214,9 @@ const StateMap = () => {
                       <p className="font-bold text-foreground mb-2">{sd.state}</p>
                       <div className="space-y-1">
                         {[
-                          { label: "Unemployment", value: `${sd.u_rate}%` },
-                          { label: "Participation", value: `${sd.p_rate}%` },
-                          { label: "Labour Force",  value: `${sd.lf?.toLocaleString()}k` },
+                          { label: t("state.unemployment"), value: `${sd.u_rate}%` },
+                          { label: t("state.participation"), value: `${sd.p_rate}%` },
+                          { label: t("state.labourForce"),  value: `${sd.lf?.toLocaleString()}k` },
                         ].map(r => (
                           <div key={r.label} className="flex justify-between gap-4">
                             <span className="text-muted-foreground text-xs">{r.label}</span>
