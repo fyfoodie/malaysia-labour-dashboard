@@ -85,10 +85,10 @@ const UnderemploymentCharts = () => {
   };
 
   const ageData = [
-    { age: "15-24", label: "Youth",       rate: getAge("15-24"), color: "#ef4444" },
-    { age: "25-34", label: "Young Adult", rate: getAge("25-34"), color: "#f97316" },
-    { age: "35-44", label: "Mid Career",  rate: getAge("35-44"), color: "#eab308" },
-    { age: "45+",   label: "Senior",      rate: getAge("45+"),   color: "#22c55e" },
+    { age: "15-24", label: t("under.youth"),       rate: getAge("15-24"), color: "#ef4444" },
+    { age: "25-34", label: t("under.youngAdult"),   rate: getAge("25-34"), color: "#f97316" },
+    { age: "35-44", label: t("under.midCareer"),    rate: getAge("35-44"), color: "#eab308" },
+    { age: "45+",   label: t("under.senior"),       rate: getAge("45+"),   color: "#22c55e" },
   ];
 
   const latestQ = latestAgeDate ? (() => {
