@@ -121,9 +121,9 @@ const UnderemploymentCharts = () => {
   }
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: "gender", label: "By Gender" },
-    { key: "age",    label: "By Age"    },
-    { key: "trend",  label: "Over Time" },
+    { key: "gender", label: t("under.byGender") },
+    { key: "age",    label: t("under.byAge")    },
+    { key: "trend",  label: t("under.overTime") },
   ];
 
   return (
