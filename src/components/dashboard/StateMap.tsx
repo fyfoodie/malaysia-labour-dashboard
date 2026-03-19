@@ -125,8 +125,8 @@ const StateMap = () => {
           </div>
           <div className="flex gap-2 p-1 rounded-full bg-muted border border-border">
             {([
-              { key: "u_rate" as Metric, label: "Unemployment" },
-              { key: "p_rate" as Metric, label: "Participation" },
+              { key: "u_rate" as Metric, label: t("state.unemployment") },
+              { key: "p_rate" as Metric, label: t("state.participation") },
             ]).map(m => (
               <button key={m.key} onClick={() => setMetric(m.key)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
