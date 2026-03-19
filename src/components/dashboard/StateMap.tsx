@@ -53,6 +53,7 @@ const getStatePath = (geometry: GeoFeature["geometry"]): string => {
 
 const StateMap = () => {
   const { data, loading } = useLabourData();
+  const { t } = useLanguage();
   const [metric, setMetric] = useState<Metric>("u_rate");
   const [geoData, setGeoData] = useState<GeoFeature[]>([]);
   const [hoveredState, setHoveredState] = useState<string | null>(null);
