@@ -23,6 +23,7 @@ interface Message {
 
 const AIAnalyst = ({ apiKey }: { apiKey: string }) => {
   const { data, loading } = useLabourData();
+  const { t } = useLanguage();
   const [open, setOpen]         = useState(false);
   const [input, setInput]       = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
