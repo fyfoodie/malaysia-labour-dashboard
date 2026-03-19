@@ -73,6 +73,7 @@ function statusOf(score: number) {
 
 /* ─── component ─── */
 const JobMarketHealth = () => {
+  const { t } = useLanguage();
   const [state, setState] = useState<string>("");
   const [industry, setIndustry] = useState<string>("");
   const [analysing, setAnalysing] = useState(false);
