@@ -205,7 +205,7 @@ const JobMarketHealth = () => {
           <Select value={industry} onValueChange={setIndustry}>
             <SelectTrigger className="w-full sm:w-56 bg-muted/50 border-border backdrop-blur">
               <Briefcase className="h-4 w-4 mr-2 text-primary" />
-              <SelectValue placeholder="Select industry" />
+              <SelectValue placeholder={t("job.selectIndustry")} />
             </SelectTrigger>
             <SelectContent>
               {INDUSTRIES.map(i => (
