@@ -257,7 +257,7 @@ const StateMap = () => {
                   <h3 className="text-lg font-bold text-foreground">{activeState.state}</h3>
                   <button onClick={() => setSelectedState(null)}
                     className="text-xs text-muted-foreground hover:text-foreground border border-border rounded-full px-2 py-0.5">
-                    ✕ Close
+                    ✕ {t("state.close")}
                   </button>
                 </div>
                 {[
