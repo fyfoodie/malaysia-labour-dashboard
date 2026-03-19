@@ -344,9 +344,9 @@ const JobMarketHealth = () => {
                   {/* key metrics */}
                   <div className="grid grid-cols-3 gap-3 mt-5">
                     {[
-                      { label: "Unemployment", value: `${result.uRate}%`, icon: <Target className="h-3.5 w-3.5" /> },
-                      { label: "Participation", value: `${result.pRate}%`, icon: <BarChart3 className="h-3.5 w-3.5" /> },
-                      { label: "Growth", value: `${result.growth > 0 ? "+" : ""}${result.growth}%`, icon: <TrendingUp className="h-3.5 w-3.5" /> },
+                      { label: t("job.unemployment"), value: `${result.uRate}%`, icon: <Target className="h-3.5 w-3.5" /> },
+                      { label: t("job.participation"), value: `${result.pRate}%`, icon: <BarChart3 className="h-3.5 w-3.5" /> },
+                      { label: t("job.growth"), value: `${result.growth > 0 ? "+" : ""}${result.growth}%`, icon: <TrendingUp className="h-3.5 w-3.5" /> },
                     ].map(m => (
                       <div key={m.label} className="text-center rounded-xl bg-muted/40 border border-border/40 py-3 px-2">
                         <div className="flex justify-center text-primary mb-1">{m.icon}</div>
