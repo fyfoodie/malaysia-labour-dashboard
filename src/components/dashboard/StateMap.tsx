@@ -94,7 +94,7 @@ const StateMap = () => {
     ? findStateData(hoveredState)
     : null;
 
-  const metricLabel = metric === "u_rate" ? "Unemployment Rate" : "Participation Rate";
+  const metricLabel = metric === "u_rate" ? t("state.unemploymentRate") : t("state.participationRate");
   const latestYear  = latestDate ? new Date(latestDate).getFullYear() : "";
   const latestMonth = latestDate ? new Date(latestDate).toLocaleString("en-MY", { month: "long" }) : "";
 
