@@ -143,7 +143,7 @@ const UnderemploymentCharts = () => {
             <div className="flex gap-1.5 flex-wrap">
               <button onClick={() => setYearFilter("all")}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${yearFilter === "all" ? "bg-foreground text-background" : "bg-muted border border-border text-foreground hover:bg-muted/80"}`}>
-                All
+                {t("common.all")}
               </button>
               {years.slice(-6).map(y => (
                 <button key={y} onClick={() => setYearFilter(y)}
