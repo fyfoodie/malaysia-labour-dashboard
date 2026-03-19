@@ -291,8 +291,8 @@ const StateMap = () => {
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="flex flex-col gap-2"
               >
-                <h3 className="text-sm font-semibold text-foreground">{metricLabel} Rankings</h3>
-                <p className="text-xs text-muted-foreground mb-1">Click a state on the map for details</p>
+                <h3 className="text-sm font-semibold text-foreground">{metricLabel} {t("state.rankings")}</h3>
+                <p className="text-xs text-muted-foreground mb-1">{t("state.clickForDetails")}</p>
                 <div className="space-y-1.5 overflow-y-auto max-h-[420px] pr-1">
                   {rankedData.map((d: any, i: number) => {
                     const val    = d[metric] ?? 0;
