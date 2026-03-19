@@ -372,7 +372,7 @@ const JobMarketHealth = () => {
               {/* Mini trend chart */}
               <div className="rounded-xl border border-border bg-card/80 p-4">
                 <p className="text-xs font-bold text-foreground mb-3">
-                  Unemployment Trend — {state} · {industry}
+                  {t("job.trendTitle")} — {state} · {industry}
                 </p>
                 <div className="h-40">
                   <ResponsiveContainer width="100%" height="100%">
