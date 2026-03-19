@@ -217,7 +217,7 @@ The user is asking about Malaysia's labour market. Answer helpfully and accurate
         <span dangerouslySetInnerHTML={{ __html: formatted }} />
         {sources.length > 0 && (
           <div className="mt-2 pt-2 border-t border-border/50 space-y-1">
-            <p className="text-xs text-muted-foreground">Sources:</p>
+            <p className="text-xs text-muted-foreground">{t("ai.sources")}</p>
             {sources.map((s, i) => (
               <a key={i} href={s.url} target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-1 text-xs text-primary hover:underline truncate">
