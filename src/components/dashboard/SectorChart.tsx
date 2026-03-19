@@ -94,10 +94,8 @@ const SectorChart = () => {
       <div className="p-5 border-b border-border">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
-            <h2 className="text-xl font-bold text-foreground">Employment by Sector</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              How Malaysia's workforce is distributed across the three main economic sectors
-            </p>
+            <h2 className="text-xl font-bold text-foreground">{t("sectors.title")}</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">{t("sectors.desc")}</p>
           </div>
           <div className="flex gap-2 flex-wrap">
             {snapshotData.map(s => (
