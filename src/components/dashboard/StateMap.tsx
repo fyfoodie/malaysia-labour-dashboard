@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLabourData } from "@/context/LabourDataContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { TrendingUp, TrendingDown, Briefcase, MapPin } from "lucide-react";
 
 type Metric = "u_rate" | "p_rate";
@@ -52,6 +53,7 @@ const getStatePath = (geometry: GeoFeature["geometry"]): string => {
 
 const StateMap = () => {
   const { data, loading } = useLabourData();
+  const { t } = useLanguage();
   const [metric, setMetric] = useState<Metric>("u_rate");
   const [geoData, setGeoData] = useState<GeoFeature[]>([]);
   const [hoveredState, setHoveredState] = useState<string | null>(null);
@@ -92,7 +94,7 @@ const StateMap = () => {
     ? findStateData(hoveredState)
     : null;
 
-  const metricLabel = metric === "u_rate" ? "Unemployment Rate" : "Participation Rate";
+  const metricLabel = metric === "u_rate" ? t("state.unemploymentRate") : t("state.participationRate");
   const latestYear  = latestDate ? new Date(latestDate).getFullYear() : "";
   const latestMonth = latestDate ? new Date(latestDate).toLocaleString("en-MY", { month: "long" }) : "";
 
@@ -118,15 +120,13 @@ const StateMap = () => {
       <div className="p-5 border-b border-border">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h2 className="text-xl font-bold text-foreground">State-Level Labour Market</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {latestMonth} {latestYear} — Official boundaries from DOSM GeoHub
-            </p>
+            <h2 className="text-xl font-bold text-foreground">{t("state.title")}</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">{latestMonth} {latestYear}</p>
           </div>
           <div className="flex gap-2 p-1 rounded-full bg-muted border border-border">
             {([
-              { key: "u_rate" as Metric, label: "Unemployment" },
-              { key: "p_rate" as Metric, label: "Participation" },
+              { key: "u_rate" as Metric, label: t("state.unemployment") },
+              { key: "p_rate" as Metric, label: t("state.participation") },
             ]).map(m => (
               <button key={m.key} onClick={() => setMetric(m.key)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
@@ -143,10 +143,10 @@ const StateMap = () => {
         {/* KPI strip */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
           {[
-            { label: "Avg Unemployment", value: `${avgUnemployment}%`, icon: TrendingDown, color: "text-red-500",    bg: "bg-red-500/10"    },
-            { label: "Avg Participation", value: `${avgParticipation}%`, icon: TrendingUp, color: "text-green-500",  bg: "bg-green-500/10"  },
-            { label: "Best Unemployment", value: `${Math.min(...latestData.map((d: any) => d.u_rate ?? 99))}%`, icon: Briefcase, color: "text-blue-500", bg: "bg-blue-500/10" },
-            { label: "States Tracked",   value: `${latestData.length}`, icon: MapPin,      color: "text-purple-500", bg: "bg-purple-500/10" },
+            { label: t("state.avgUnemployment"), value: `${avgUnemployment}%`, icon: TrendingDown, color: "text-red-500",    bg: "bg-red-500/10"    },
+            { label: t("state.avgParticipation"), value: `${avgParticipation}%`, icon: TrendingUp, color: "text-green-500",  bg: "bg-green-500/10"  },
+            { label: t("state.bestUnemployment"), value: `${Math.min(...latestData.map((d: any) => d.u_rate ?? 99))}%`, icon: Briefcase, color: "text-blue-500", bg: "bg-blue-500/10" },
+            { label: t("state.statesTracked"),   value: `${latestData.length}`, icon: MapPin,      color: "text-purple-500", bg: "bg-purple-500/10" },
           ].map((kpi, i) => (
             <motion.div key={kpi.label}
               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
@@ -165,8 +165,8 @@ const StateMap = () => {
       {/* Map + Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
         <div className="lg:col-span-2 p-5 relative">
-          <h3 className="text-sm font-semibold text-foreground mb-1">{metricLabel} Choropleth</h3>
-          <p className="text-xs text-muted-foreground mb-3">Click a state to pin details • Hover to preview</p>
+          <h3 className="text-sm font-semibold text-foreground mb-1">{metricLabel}</h3>
+          <p className="text-xs text-muted-foreground mb-3">{t("state.clickState")}</p>
 
           {geoData.length > 0 ? (
             <div className="relative">
@@ -214,9 +214,9 @@ const StateMap = () => {
                       <p className="font-bold text-foreground mb-2">{sd.state}</p>
                       <div className="space-y-1">
                         {[
-                          { label: "Unemployment", value: `${sd.u_rate}%` },
-                          { label: "Participation", value: `${sd.p_rate}%` },
-                          { label: "Labour Force",  value: `${sd.lf?.toLocaleString()}k` },
+                          { label: t("state.unemployment"), value: `${sd.u_rate}%` },
+                          { label: t("state.participation"), value: `${sd.p_rate}%` },
+                          { label: t("state.labourForce"),  value: `${sd.lf?.toLocaleString()}k` },
                         ].map(r => (
                           <div key={r.label} className="flex justify-between gap-4">
                             <span className="text-muted-foreground text-xs">{r.label}</span>
@@ -231,11 +231,11 @@ const StateMap = () => {
 
               {/* Legend */}
               <div className="mt-3 flex items-center justify-center gap-1 flex-wrap">
-                <span className="text-xs text-muted-foreground mr-1">Low</span>
+                <span className="text-xs text-muted-foreground mr-1">{t("state.low")}</span>
                 {["#22c55e", "#84cc16", "#eab308", "#f97316", "#ef4444"].map((c, i) => (
                   <div key={i} className="w-6 h-3 rounded-sm" style={{ backgroundColor: c }} />
                 ))}
-                <span className="text-xs text-muted-foreground ml-1">High</span>
+                <span className="text-xs text-muted-foreground ml-1">{t("state.high")}</span>
               </div>
             </div>
           ) : (
@@ -257,15 +257,15 @@ const StateMap = () => {
                   <h3 className="text-lg font-bold text-foreground">{activeState.state}</h3>
                   <button onClick={() => setSelectedState(null)}
                     className="text-xs text-muted-foreground hover:text-foreground border border-border rounded-full px-2 py-0.5">
-                    ✕ Close
+                    ✕ {t("state.close")}
                   </button>
                 </div>
                 {[
-                  { label: "Unemployment Rate", value: `${activeState.u_rate}%`,             color: getColor(activeState.u_rate, "u_rate") },
-                  { label: "Participation Rate", value: `${activeState.p_rate}%`,             color: getColor(activeState.p_rate, "p_rate") },
-                  { label: "Labour Force",       value: `${activeState.lf?.toLocaleString()}k`,      color: "#6366f1" },
-                  { label: "Employed",           value: `${activeState.employed?.toLocaleString()}k`, color: "#22c55e" },
-                  { label: "Unemployed",         value: `${activeState.unemployed?.toLocaleString()}k`, color: "#ef4444" },
+                  { label: t("state.unemploymentRate"), value: `${activeState.u_rate}%`,             color: getColor(activeState.u_rate, "u_rate") },
+                  { label: t("state.participationRate"), value: `${activeState.p_rate}%`,             color: getColor(activeState.p_rate, "p_rate") },
+                  { label: t("state.labourForce"),       value: `${activeState.lf?.toLocaleString()}k`,      color: "#6366f1" },
+                  { label: t("state.employed"),           value: `${activeState.employed?.toLocaleString()}k`, color: "#22c55e" },
+                  { label: t("state.unemployed"),         value: `${activeState.unemployed?.toLocaleString()}k`, color: "#ef4444" },
                 ].map(stat => (
                   <div key={stat.label} className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border">
                     <span className="text-sm text-muted-foreground">{stat.label}</span>
@@ -273,7 +273,7 @@ const StateMap = () => {
                   </div>
                 ))}
                 <div className="mt-2">
-                  <p className="text-xs text-muted-foreground mb-1">Unemployment vs national avg ({avgUnemployment}%)</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t("state.vsNational")} ({avgUnemployment}%)</p>
                   <div className="h-3 rounded-full bg-muted overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-500"
                       style={{
@@ -291,8 +291,8 @@ const StateMap = () => {
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="flex flex-col gap-2"
               >
-                <h3 className="text-sm font-semibold text-foreground">{metricLabel} Rankings</h3>
-                <p className="text-xs text-muted-foreground mb-1">Click a state on the map for details</p>
+                <h3 className="text-sm font-semibold text-foreground">{metricLabel} {t("state.rankings")}</h3>
+                <p className="text-xs text-muted-foreground mb-1">{t("state.clickForDetails")}</p>
                 <div className="space-y-1.5 overflow-y-auto max-h-[420px] pr-1">
                   {rankedData.map((d: any, i: number) => {
                     const val    = d[metric] ?? 0;

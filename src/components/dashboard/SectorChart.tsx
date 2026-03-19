@@ -5,6 +5,7 @@ import {
 } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLabourData } from "@/context/LabourDataContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { TrendingUp, TrendingDown } from "lucide-react";
 
 const SECTOR_CONFIG = {
@@ -26,6 +27,7 @@ type View = "snapshot" | "trend" | "shift";
 
 const SectorChart = () => {
   const { data, loading } = useLabourData();
+  const { t } = useLanguage();
   const [view, setView] = useState<View>("snapshot");
   const [hoveredSector, setHoveredSector] = useState<string | null>(null);
 
@@ -77,9 +79,9 @@ const SectorChart = () => {
   }
 
   const views: { key: View; label: string }[] = [
-    { key: "snapshot", label: `${latestYear} Snapshot` },
-    { key: "trend",    label: "Historical Trend"       },
-    { key: "shift",    label: "Structural Shift"       },
+    { key: "snapshot", label: `${latestYear} ${t("sectors.snapshot")}` },
+    { key: "trend",    label: t("sectors.historicalTrend")       },
+    { key: "shift",    label: t("sectors.structuralShift")       },
   ];
 
   return (
@@ -92,10 +94,8 @@ const SectorChart = () => {
       <div className="p-5 border-b border-border">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
-            <h2 className="text-xl font-bold text-foreground">Employment by Sector</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              How Malaysia's workforce is distributed across the three main economic sectors
-            </p>
+            <h2 className="text-xl font-bold text-foreground">{t("sectors.title")}</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">{t("sectors.desc")}</p>
           </div>
           <div className="flex gap-2 flex-wrap">
             {snapshotData.map(s => (
@@ -217,7 +217,7 @@ const SectorChart = () => {
           {view === "trend" && (
             <motion.div key="trend" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <p className="text-xs text-muted-foreground mb-3">
-                How each sector's share of total employment has evolved since 2005
+                {t("sectors.trendDesc")}
               </p>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">

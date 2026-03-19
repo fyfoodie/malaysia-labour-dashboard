@@ -1,10 +1,12 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useLabourData } from "@/context/LabourDataContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { Lightbulb, TrendingUp, BarChart2, AlertTriangle } from "lucide-react";
 
 const DataInsightCards = () => {
   const { data, loading } = useLabourData();
+  const { t } = useLanguage();
 
   const insights = useMemo(() => {
     if (!data?.national?.length || !data?.state?.length) return [];
@@ -13,91 +15,85 @@ const DataInsightCards = () => {
     const latest   = national[national.length - 1];
     const first    = national[0];
 
-    // State with highest and lowest unemployment
     const stateLatest = data.state
       .filter((d: any) => d.date === data.state[data.state.length - 1]?.date)
       .sort((a: any, b: any) => b.u_rate - a.u_rate);
     const highestState = stateLatest[0];
     const lowestState  = stateLatest[stateLatest.length - 1];
 
-    // LFPR peak
     const peakLFPR = national.reduce((m: any, d: any) => d.p_rate > m.p_rate ? d : m, national[0]);
     const peakLFPRDate = new Date(peakLFPR.date).toLocaleString("en-MY", { month: "short", year: "numeric" });
 
-    // Employment growth
     const growthPct = (((latest.employed - first.employed) / first.employed) * 100).toFixed(1);
     const firstEmp  = (first.employed / 1000).toFixed(1);
     const latestEmp = (latest.employed / 1000).toFixed(1);
     const latestDate = new Date(latest.date).toLocaleString("en-MY", { month: "short", year: "numeric" });
 
-    // COVID peak unemployment
     const covidPeak = national.reduce((m: any, d: any) => d.u_rate > m.u_rate ? d : m, national[0]);
     const covidDate = new Date(covidPeak.date).toLocaleString("en-MY", { month: "short", year: "numeric" });
 
     return [
       {
         icon: Lightbulb,
-        tag: "DID YOU KNOW?",
+        tag: t("insight.didYouKnow"),
         color: "text-yellow-500",
         bg: "bg-yellow-500/10",
         border: "border-yellow-500/20",
         content: (
           <p className="text-sm text-foreground leading-relaxed">
-            <strong className="text-primary">{highestState?.state}</strong> recorded the highest
-            unemployment at <strong className="text-primary">{highestState?.u_rate}%</strong>, while{" "}
-            <strong className="text-primary">{lowestState?.state}</strong> has the lowest at{" "}
+            <strong className="text-primary">{highestState?.state}</strong> {t("insight.highest")}{" "}
+            <strong className="text-primary">{highestState?.u_rate}%</strong>, {t("insight.lowest").replace("has the lowest at", "").trim()}{" "}
+            <strong className="text-primary">{lowestState?.state}</strong> {t("insight.lowest").includes("has") ? t("insight.lowest").split("has")[0] : ""} {t("insight.lowest").includes("at") ? t("insight.lowest").split("at").pop() : ""}{" "}
             <strong className="text-primary">{lowestState?.u_rate}%</strong>.
           </p>
         ),
       },
       {
         icon: TrendingUp,
-        tag: "INTERESTING TREND",
+        tag: t("insight.trend"),
         color: "text-blue-500",
         bg: "bg-blue-500/10",
         border: "border-blue-500/20",
         content: (
           <p className="text-sm text-foreground leading-relaxed">
-            Malaysia's LFPR reached its highest level of{" "}
-            <strong className="text-primary">{peakLFPR.p_rate}%</strong> in{" "}
-            <strong className="text-primary">{peakLFPRDate}</strong>, showing more people
-            entering the workforce than ever.
+            {t("insight.lfpr")}{" "}
+            <strong className="text-primary">{peakLFPR.p_rate}%</strong> {t("insight.in")}{" "}
+            <strong className="text-primary">{peakLFPRDate}</strong>, {t("insight.lfpr2")}
           </p>
         ),
       },
       {
         icon: BarChart2,
-        tag: "JOB MARKET INSIGHT",
+        tag: t("insight.jobMarket"),
         color: "text-green-500",
         bg: "bg-green-500/10",
         border: "border-green-500/20",
         content: (
           <p className="text-sm text-foreground leading-relaxed">
-            Employment has grown by{" "}
-            <strong className="text-primary">+{growthPct}%</strong> since the first recorded month,
-            expanding from <strong className="text-primary">{firstEmp}M</strong> to{" "}
-            <strong className="text-primary">{latestEmp}M</strong> workers.
+            {t("insight.growth")}{" "}
+            <strong className="text-primary">+{growthPct}%</strong> {t("insight.since")}{" "}
+            <strong className="text-primary">{firstEmp}M</strong> {t("insight.to")}{" "}
+            <strong className="text-primary">{latestEmp}M</strong> {t("insight.workers")}
           </p>
         ),
       },
       {
         icon: AlertTriangle,
-        tag: "PANDEMIC IMPACT",
+        tag: t("insight.pandemic"),
         color: "text-red-500",
         bg: "bg-red-500/10",
         border: "border-red-500/20",
         content: (
           <p className="text-sm text-foreground leading-relaxed">
-            Unemployment peaked at{" "}
-            <strong className="text-primary">{covidPeak.u_rate}%</strong> in{" "}
-            <strong className="text-primary">{covidDate}</strong> during the pandemic, but has
-            since recovered to{" "}
-            <strong className="text-primary">{latest.u_rate}%</strong> as of {latestDate}.
+            {t("insight.peaked")}{" "}
+            <strong className="text-primary">{covidPeak.u_rate}%</strong> {t("insight.in")}{" "}
+            <strong className="text-primary">{covidDate}</strong> {t("insight.pandemic2")}{" "}
+            <strong className="text-primary">{latest.u_rate}%</strong> {t("insight.asOf")} {latestDate}.
           </p>
         ),
       },
     ];
-  }, [data]);
+  }, [data, t]);
 
   if (loading || !insights.length) {
     return (
@@ -123,9 +119,7 @@ const DataInsightCards = () => {
             <div className={`p-1.5 rounded-lg ${insight.bg}`}>
               <insight.icon className={`h-3.5 w-3.5 ${insight.color}`} />
             </div>
-            <span className={`text-xs font-bold tracking-wider ${insight.color}`}>
-              {insight.tag}
-            </span>
+            <span className={`text-xs font-bold tracking-wider ${insight.color}`}>{insight.tag}</span>
           </div>
           {insight.content}
         </motion.div>

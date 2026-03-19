@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLabourData } from "@/context/LabourDataContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { Sparkles, Send, X, ChevronDown, Loader2, RotateCcw, ExternalLink } from "lucide-react";
 
 const SUGGESTED_QUESTIONS = [
@@ -22,6 +23,7 @@ interface Message {
 
 const AIAnalyst = ({ apiKey }: { apiKey: string }) => {
   const { data, loading } = useLabourData();
+  const { t } = useLanguage();
   const [open, setOpen]         = useState(false);
   const [input, setInput]       = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -96,7 +98,7 @@ LIVE MALAYSIA LABOUR MARKET DATA (from DOSM — Department of Statistics Malaysi
     if (open && messages.length === 0) {
       setMessages([{
         role: "assistant",
-        content: "Hi! I'm your Malaysia Labour Market AI Analyst. I have access to live DOSM data and can search current news to answer your questions. Ask me anything — about employment trends, sectors, states, or Malaysia's economy.",
+        content: t("ai.welcome"),
         timestamp: new Date(),
       }]);
     }
@@ -215,7 +217,7 @@ The user is asking about Malaysia's labour market. Answer helpfully and accurate
         <span dangerouslySetInnerHTML={{ __html: formatted }} />
         {sources.length > 0 && (
           <div className="mt-2 pt-2 border-t border-border/50 space-y-1">
-            <p className="text-xs text-muted-foreground">Sources:</p>
+            <p className="text-xs text-muted-foreground">{t("ai.sources")}</p>
             {sources.map((s, i) => (
               <a key={i} href={s.url} target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-1 text-xs text-primary hover:underline truncate">
@@ -246,7 +248,7 @@ The user is asking about Malaysia's labour market. Answer helpfully and accurate
             className="fixed bottom-6 right-6 z-[100] flex items-center gap-2 px-4 py-3 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl font-semibold text-sm"
           >
             <Sparkles className="h-4 w-4" />
-            Ask AI Analyst
+            {t("ai.button")}
           </motion.button>
         )}
       </AnimatePresence>
@@ -269,8 +271,8 @@ The user is asking about Malaysia's labour market. Answer helpfully and accurate
                   <Sparkles className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-foreground">AI Labour Analyst</p>
-                  <p className="text-xs text-muted-foreground">Live DOSM data + web search</p>
+                  <p className="text-sm font-bold text-foreground">{t("ai.title")}</p>
+                  <p className="text-xs text-muted-foreground">{t("ai.subtitle")}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -311,7 +313,7 @@ The user is asking about Malaysia's labour market. Answer helpfully and accurate
                   className="flex justify-start">
                   <div className="bg-muted rounded-2xl rounded-bl-sm px-4 py-3 flex items-center gap-2">
                     <Loader2 className="h-3.5 w-3.5 text-primary animate-spin" />
-                    <span className="text-xs text-muted-foreground">Analysing data + searching web...</span>
+                    <span className="text-xs text-muted-foreground">{t("ai.analysing")}</span>
                   </div>
                 </motion.div>
               )}
@@ -328,7 +330,7 @@ The user is asking about Malaysia's labour market. Answer helpfully and accurate
             {/* Suggested questions — only show at start */}
             {messages.length <= 1 && (
               <div className="px-4 pb-2">
-                <p className="text-xs text-muted-foreground mb-2">Suggested questions:</p>
+                <p className="text-xs text-muted-foreground mb-2">{t("ai.suggested")}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {SUGGESTED_QUESTIONS.slice(0, 4).map(q => (
                     <button key={q} onClick={() => ask(q)}
@@ -348,7 +350,7 @@ The user is asking about Malaysia's labour market. Answer helpfully and accurate
                   value={input}
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && !e.shiftKey && ask(input)}
-                  placeholder="Ask anything about Malaysia's job market..."
+                  placeholder={t("ai.placeholder")}
                   className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
                 />
                 <button
@@ -360,7 +362,7 @@ The user is asking about Malaysia's labour market. Answer helpfully and accurate
                 </button>
               </div>
               <p className="text-xs text-muted-foreground mt-1.5 text-center">
-                Powered by Gemini 2.0 Flash · Live DOSM data · Web search enabled
+                {t("ai.powered")}
               </p>
             </div>
           </motion.div>

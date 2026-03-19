@@ -5,6 +5,7 @@ import {
 } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLabourData } from "@/context/LabourDataContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { TrendingUp, TrendingDown, Activity } from "lucide-react";
 
 const tooltipStyle = {
@@ -21,6 +22,7 @@ type Tab = "workforce" | "unemployment" | "participation" | "change";
 
 const TrendCharts = () => {
   const { data, loading } = useLabourData();
+  const { t } = useLanguage();
   const [selectedYear, setSelectedYear] = useState<number | "all">("all");
   const [activeTab, setActiveTab] = useState<Tab>("unemployment");
 
@@ -52,8 +54,6 @@ const TrendCharts = () => {
 
   const latest = chartData[chartData.length - 1];
   const first  = chartData[0];
-  const peakU  = chartData.reduce((m, d) => d.uRate > m.uRate ? d : m, chartData[0] ?? { uRate: 0, label: "" });
-  const minU   = chartData.reduce((m, d) => d.uRate < m.uRate ? d : m, chartData[0] ?? { uRate: 0, label: "" });
 
   if (loading || !data?.national?.length) {
     return <div className="rounded-2xl bg-card border border-border p-5 h-80 animate-pulse" />;
@@ -62,25 +62,24 @@ const TrendCharts = () => {
   const xInterval = selectedYear === "all" ? 11 : 0;
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: "unemployment",  label: "Unemployment"  },
-    { key: "workforce",     label: "Workforce"      },
-    { key: "participation", label: "Participation"  },
-    { key: "change",        label: "Job Change"     },
+    { key: "unemployment",  label: t("trends.unemployment")  },
+    { key: "workforce",     label: t("trends.workforce")      },
+    { key: "participation", label: t("trends.participation")  },
+    { key: "change",        label: t("trends.jobChange")     },
   ];
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.5 }}
       className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden"
     >
       <div className="p-5 border-b border-border">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h2 className="text-xl font-bold text-foreground">Employment Trends</h2>
+            <h2 className="text-xl font-bold text-foreground">{t("trends.title")}</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Monthly data from {first?.label} to {latest?.label}
+              {t("trends.monthly")} {first?.label} {t("insight.to")} {latest?.label}
             </p>
           </div>
           <select
@@ -88,7 +87,7 @@ const TrendCharts = () => {
             onChange={(e) => setSelectedYear(e.target.value === "all" ? "all" : Number(e.target.value))}
             className="appearance-none px-3 py-2 pr-8 rounded-xl bg-muted border border-border text-foreground text-xs font-medium cursor-pointer hover:bg-muted/80 transition-all focus:outline-none w-fit"
           >
-            <option value="all">All Years</option>
+            <option value="all">{t("trends.allYears")}</option>
             {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
@@ -96,15 +95,10 @@ const TrendCharts = () => {
 
       <div className="flex border-b border-border overflow-x-auto">
         {tabs.map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
+          <button key={tab.key} onClick={() => setActiveTab(tab.key)}
             className={`px-5 py-3 text-xs font-semibold whitespace-nowrap transition-all border-b-2 ${
-              activeTab === tab.key
-                ? "border-primary text-primary bg-primary/5"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
+              activeTab === tab.key ? "border-primary text-primary bg-primary/5" : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}>
             {tab.label}
           </button>
         ))}
@@ -124,10 +118,10 @@ const TrendCharts = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="label" tick={tickStyle} interval={xInterval} angle={-30} textAnchor="end" height={50} />
                 <YAxis tick={tickStyle} tickFormatter={v => `${v}%`} />
-                <Tooltip contentStyle={tooltipStyle} labelStyle={labelStyle} formatter={(v: number) => [`${v}%`, "Unemployment Rate"]} />
+                <Tooltip contentStyle={tooltipStyle} labelStyle={labelStyle} formatter={(v: number) => [`${v}%`, t("trends.unemploymentRate")]} />
                 <ReferenceLine y={3.3} stroke="hsl(var(--muted-foreground))" strokeDasharray="5 5"
-                  label={{ value: "Pre-COVID avg (3.3%)", fill: "hsl(var(--muted-foreground))", fontSize: 9, position: "insideTopRight" }} />
-                <Area type="monotone" dataKey="uRate" name="Unemployment Rate"
+                  label={{ value: t("trends.preCovid"), fill: "hsl(var(--muted-foreground))", fontSize: 9, position: "insideTopRight" }} />
+                <Area type="monotone" dataKey="uRate" name={t("trends.unemploymentRate")}
                   stroke="hsl(var(--chart-2))" strokeWidth={2.5} fill="url(#uGrad)" dot={false} activeDot={{ r: 4 }} />
               </AreaChart>
             ) : activeTab === "workforce" ? (
@@ -147,8 +141,8 @@ const TrendCharts = () => {
                 <YAxis tick={tickStyle} tickFormatter={v => `${v}M`} />
                 <Tooltip contentStyle={tooltipStyle} labelStyle={labelStyle} formatter={(v: number) => [`${v}M`]} />
                 <Legend wrapperStyle={{ fontSize: 11, color: "hsl(var(--foreground))" }} />
-                <Area type="monotone" dataKey="lf"       name="Labour Force" stroke="hsl(var(--chart-1))" strokeWidth={2} fill="url(#lfGrad)"  dot={false} activeDot={{ r: 4 }} />
-                <Area type="monotone" dataKey="employed" name="Employed"      stroke="hsl(var(--chart-3))" strokeWidth={2} fill="url(#empGrad)" dot={false} activeDot={{ r: 4 }} />
+                <Area type="monotone" dataKey="lf"       name={t("trends.labourForce")} stroke="hsl(var(--chart-1))" strokeWidth={2} fill="url(#lfGrad)"  dot={false} activeDot={{ r: 4 }} />
+                <Area type="monotone" dataKey="employed" name={t("trends.employed")}     stroke="hsl(var(--chart-3))" strokeWidth={2} fill="url(#empGrad)" dot={false} activeDot={{ r: 4 }} />
               </AreaChart>
             ) : activeTab === "participation" ? (
               <AreaChart data={chartData}>
@@ -161,10 +155,10 @@ const TrendCharts = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="label" tick={tickStyle} interval={xInterval} angle={-30} textAnchor="end" height={50} />
                 <YAxis tick={tickStyle} tickFormatter={v => `${v}%`} domain={["auto", "auto"]} />
-                <Tooltip contentStyle={tooltipStyle} labelStyle={labelStyle} formatter={(v: number) => [`${v}%`, "LFPR"]} />
+                <Tooltip contentStyle={tooltipStyle} labelStyle={labelStyle} formatter={(v: number) => [`${v}%`, t("trends.participationRate")]} />
                 <ReferenceLine y={70} stroke="hsl(var(--muted-foreground))" strokeDasharray="5 5"
-                  label={{ value: "70% target", fill: "hsl(var(--muted-foreground))", fontSize: 9, position: "insideTopRight" }} />
-                <Area type="monotone" dataKey="pRate" name="Participation Rate"
+                  label={{ value: t("trends.70target"), fill: "hsl(var(--muted-foreground))", fontSize: 9, position: "insideTopRight" }} />
+                <Area type="monotone" dataKey="pRate" name={t("trends.participationRate")}
                   stroke="hsl(var(--chart-4))" strokeWidth={2.5} fill="url(#pGrad)" dot={false} activeDot={{ r: 4 }} />
               </AreaChart>
             ) : (
@@ -173,18 +167,18 @@ const TrendCharts = () => {
                 <XAxis dataKey="label" tick={tickStyle} interval={xInterval} angle={-30} textAnchor="end" height={50} />
                 <YAxis tick={tickStyle} tickFormatter={v => `${v > 0 ? "+" : ""}${v}k`} />
                 <Tooltip contentStyle={tooltipStyle} labelStyle={labelStyle}
-                  formatter={(v: number) => [`${v > 0 ? "+" : ""}${v.toFixed(1)}k`, "Job Change"]} />
+                  formatter={(v: number) => [`${v > 0 ? "+" : ""}${v.toFixed(1)}k`, t("trends.jobChange")]} />
                 <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeWidth={1.5} />
-                <Bar dataKey="change" name="Job Change" radius={[2, 2, 0, 0]} fill="hsl(var(--chart-1))" />
+                <Bar dataKey="change" name={t("trends.jobChange")} radius={[2, 2, 0, 0]} fill="hsl(var(--chart-1))" />
               </ComposedChart>
             )}
           </ResponsiveContainer>
         </div>
         <p className="text-xs text-muted-foreground mt-3 text-center">
-          {activeTab === "unemployment"  && "The dashed line marks the pre-COVID baseline average of 3.3%"}
-          {activeTab === "workforce"     && "Gap between Labour Force and Employed lines represents unemployment count"}
-          {activeTab === "participation" && "Dashed line marks the 70% participation target"}
-          {activeTab === "change"        && "Month-over-month change in total employed persons (thousands)"}
+          {activeTab === "unemployment"  && t("trends.note.unemployment")}
+          {activeTab === "workforce"     && t("trends.note.workforce")}
+          {activeTab === "participation" && t("trends.note.participation")}
+          {activeTab === "change"        && t("trends.note.change")}
         </p>
       </div>
     </motion.div>

@@ -4,6 +4,7 @@ import {
   MapPin, Briefcase, Target, TrendingUp, TrendingDown,
   Lightbulb, Search, Loader2, BarChart3, Activity,
 } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   Select,
   SelectContent,
@@ -72,6 +73,7 @@ function statusOf(score: number) {
 
 /* ─── component ─── */
 const JobMarketHealth = () => {
+  const { t } = useLanguage();
   const [state, setState] = useState<string>("");
   const [industry, setIndustry] = useState<string>("");
   const [analysing, setAnalysing] = useState(false);
@@ -180,14 +182,10 @@ const JobMarketHealth = () => {
         {/* ── Title ── */}
         <div className="text-center space-y-1">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/8 text-xs font-semibold text-primary tracking-widest uppercase mb-2">
-            <Search className="h-3 w-3" /> Personalised Analysis
+            <Search className="h-3 w-3" /> {t("job.personalised")}
           </div>
-          <h3 className="text-2xl md:text-3xl font-extrabold text-foreground">
-            Check Your Job Market Health
-          </h3>
-          <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            Select a location and industry to see a personalised labour health score.
-          </p>
+          <h3 className="text-2xl md:text-3xl font-extrabold text-foreground">{t("job.title")}</h3>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">{t("job.desc")}</p>
         </div>
 
         {/* ── Selectors ── */}
@@ -195,7 +193,7 @@ const JobMarketHealth = () => {
           <Select value={state} onValueChange={setState}>
             <SelectTrigger className="w-full sm:w-56 bg-muted/50 border-border backdrop-blur">
               <MapPin className="h-4 w-4 mr-2 text-primary" />
-              <SelectValue placeholder="Select state" />
+              <SelectValue placeholder={t("job.selectState")} />
             </SelectTrigger>
             <SelectContent>
               {STATES.map(s => (
@@ -207,7 +205,7 @@ const JobMarketHealth = () => {
           <Select value={industry} onValueChange={setIndustry}>
             <SelectTrigger className="w-full sm:w-56 bg-muted/50 border-border backdrop-blur">
               <Briefcase className="h-4 w-4 mr-2 text-primary" />
-              <SelectValue placeholder="Select industry" />
+              <SelectValue placeholder={t("job.selectIndustry")} />
             </SelectTrigger>
             <SelectContent>
               {INDUSTRIES.map(i => (
@@ -224,12 +222,12 @@ const JobMarketHealth = () => {
             {analysing ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Analysing…
+                {t("job.analysing")}
               </>
             ) : (
               <>
                 <Activity className="h-4 w-4" />
-                Analyze Job Market
+                {t("job.analyze")}
               </>
             )}
           </Button>
@@ -243,9 +241,8 @@ const JobMarketHealth = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="text-center py-10 text-muted-foreground text-sm"
-            >
-              Select a location and industry to analyze the job market.
+              className="text-center py-10 text-muted-foreground text-sm">
+              {t("job.emptyState")}
             </motion.div>
           )}
 
@@ -259,7 +256,7 @@ const JobMarketHealth = () => {
               className="text-center py-10 space-y-3"
             >
               <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-              <p className="text-sm text-muted-foreground">Analyzing labour market…</p>
+              <p className="text-sm text-muted-foreground">{t("job.analyzingMarket")}</p>
             </motion.div>
           )}
 
@@ -346,9 +343,9 @@ const JobMarketHealth = () => {
                   {/* key metrics */}
                   <div className="grid grid-cols-3 gap-3 mt-5">
                     {[
-                      { label: "Unemployment", value: `${result.uRate}%`, icon: <Target className="h-3.5 w-3.5" /> },
-                      { label: "Participation", value: `${result.pRate}%`, icon: <BarChart3 className="h-3.5 w-3.5" /> },
-                      { label: "Growth", value: `${result.growth > 0 ? "+" : ""}${result.growth}%`, icon: <TrendingUp className="h-3.5 w-3.5" /> },
+                      { label: t("job.unemployment"), value: `${result.uRate}%`, icon: <Target className="h-3.5 w-3.5" /> },
+                      { label: t("job.participation"), value: `${result.pRate}%`, icon: <BarChart3 className="h-3.5 w-3.5" /> },
+                      { label: t("job.growth"), value: `${result.growth > 0 ? "+" : ""}${result.growth}%`, icon: <TrendingUp className="h-3.5 w-3.5" /> },
                     ].map(m => (
                       <div key={m.label} className="text-center rounded-xl bg-muted/40 border border-border/40 py-3 px-2">
                         <div className="flex justify-center text-primary mb-1">{m.icon}</div>
@@ -365,7 +362,7 @@ const JobMarketHealth = () => {
                 <div className="flex items-start gap-2">
                   <Lightbulb className="h-4 w-4 text-yellow-400 mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs font-bold text-foreground mb-1">Insight</p>
+                    <p className="text-xs font-bold text-foreground mb-1">{t("job.insight")}</p>
                     <p className="text-sm text-muted-foreground leading-relaxed">{result.insight}</p>
                   </div>
                 </div>
@@ -374,7 +371,7 @@ const JobMarketHealth = () => {
               {/* Mini trend chart */}
               <div className="rounded-xl border border-border bg-card/80 p-4">
                 <p className="text-xs font-bold text-foreground mb-3">
-                  Unemployment Trend — {state} · {industry}
+                  {t("job.trendTitle")} — {state} · {industry}
                 </p>
                 <div className="h-40">
                   <ResponsiveContainer width="100%" height="100%">
@@ -417,7 +414,7 @@ const JobMarketHealth = () => {
               {/* Suggestions */}
               {result.suggestions.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs font-bold text-foreground">Suggestions for You</p>
+                  <p className="text-xs font-bold text-foreground">{t("job.suggestions")}</p>
                   {result.suggestions.map((s, i) => (
                     <motion.div
                       key={i}

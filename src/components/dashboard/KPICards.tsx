@@ -1,15 +1,15 @@
 import { TrendingUp, TrendingDown, Minus, Briefcase, UserX, Users, AlertTriangle, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLabourData } from "@/context/LabourDataContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const KPICards = () => {
   const { data, loading } = useLabourData();
+  const { t } = useLanguage();
 
   if (loading || !data?.national?.length) {
-    return (
-      <div className="rounded-2xl bg-card border border-border p-5 h-40 animate-pulse" />
-    );
+    return <div className="rounded-2xl bg-card border border-border p-5 h-40 animate-pulse" />;
   }
 
   const national = [...data.national].sort((a: any, b: any) => a.date.localeCompare(b.date));
@@ -51,31 +51,31 @@ const KPICards = () => {
 
   const cards = [
     {
-      title: "Employment Rate", value: er, unit: "%",
+      title: t("kpi.employmentRate"), value: er, unit: "%",
       momChange: +(er - per).toFixed(1), yoyChange: erYoY,
       icon: Briefcase, invertTrend: false,
-      tooltip: "Percentage of labour force currently employed.",
+      tooltip: t("kpi.tooltip.employment"),
       gradient: "from-blue-500 to-cyan-400", barColor: "#3b82f6", max: 100,
     },
     {
-      title: "Unemployment Rate", value: ur, unit: "%",
+      title: t("kpi.unemploymentRate"), value: ur, unit: "%",
       momChange: +(ur - pur).toFixed(1), yoyChange: urYoY,
       icon: UserX, invertTrend: true,
-      tooltip: "Percentage actively seeking but unable to find work. Lower is better.",
+      tooltip: t("kpi.tooltip.unemployment"),
       gradient: "from-orange-500 to-red-400", barColor: "#f97316", max: 10,
     },
     {
-      title: "Labour Participation", value: pr, unit: "%",
+      title: t("kpi.labourParticipation"), value: pr, unit: "%",
       momChange: +(pr - ppr).toFixed(1), yoyChange: prYoY,
       icon: Users, invertTrend: false,
-      tooltip: "Percentage of working-age population in the labour force.",
+      tooltip: t("kpi.tooltip.participation"),
       gradient: "from-green-500 to-emerald-400", barColor: "#22c55e", max: 85,
     },
     {
-      title: "Skills Mismatch", value: underRate ?? 0, unit: "%",
+      title: t("kpi.skillsMismatch"), value: underRate ?? 0, unit: "%",
       momChange: underChange, yoyChange: null,
       icon: AlertTriangle, invertTrend: true,
-      tooltip: "Tertiary-educated workers in jobs below their qualification level.",
+      tooltip: t("kpi.tooltip.mismatch"),
       gradient: "from-purple-500 to-violet-400", barColor: "#a855f7", max: 25,
     },
   ];
@@ -84,7 +84,7 @@ const KPICards = () => {
     <div className="space-y-3">
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <Calendar className="h-3.5 w-3.5" />
-        <span>Latest data: <strong className="text-foreground">{latestLabel}</strong></span>
+        <span>{t("kpi.latestData")}: <strong className="text-foreground">{latestLabel}</strong></span>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {cards.map((card, index) => {
@@ -96,8 +96,7 @@ const KPICards = () => {
             <Tooltip key={card.title}>
               <TooltipTrigger asChild>
                 <motion.div
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.08, duration: 0.4 }}
                   className="relative rounded-2xl bg-card border border-border p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-help overflow-hidden group"
                 >

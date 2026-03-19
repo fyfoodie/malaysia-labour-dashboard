@@ -5,6 +5,7 @@ import {
 } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLabourData } from "@/context/LabourDataContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { Users, GraduationCap, TrendingDown, AlertTriangle } from "lucide-react";
 
 const tooltipStyle = {
@@ -20,6 +21,7 @@ type Tab = "gender" | "age" | "trend";
 
 const UnderemploymentCharts = () => {
   const { data, loading } = useLabourData();
+  const { t } = useLanguage();
   const [tab, setTab] = useState<Tab>("gender");
   const [yearFilter, setYearFilter] = useState<number | "all">("all");
 
@@ -83,10 +85,10 @@ const UnderemploymentCharts = () => {
   };
 
   const ageData = [
-    { age: "15-24", label: "Youth",       rate: getAge("15-24"), color: "#ef4444" },
-    { age: "25-34", label: "Young Adult", rate: getAge("25-34"), color: "#f97316" },
-    { age: "35-44", label: "Mid Career",  rate: getAge("35-44"), color: "#eab308" },
-    { age: "45+",   label: "Senior",      rate: getAge("45+"),   color: "#22c55e" },
+    { age: "15-24", label: t("under.youth"),       rate: getAge("15-24"), color: "#ef4444" },
+    { age: "25-34", label: t("under.youngAdult"),   rate: getAge("25-34"), color: "#f97316" },
+    { age: "35-44", label: t("under.midCareer"),    rate: getAge("35-44"), color: "#eab308" },
+    { age: "45+",   label: t("under.senior"),       rate: getAge("45+"),   color: "#22c55e" },
   ];
 
   const latestQ = latestAgeDate ? (() => {
@@ -119,9 +121,9 @@ const UnderemploymentCharts = () => {
   }
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: "gender", label: "By Gender" },
-    { key: "age",    label: "By Age"    },
-    { key: "trend",  label: "Over Time" },
+    { key: "gender", label: t("under.byGender") },
+    { key: "age",    label: t("under.byAge")    },
+    { key: "trend",  label: t("under.overTime") },
   ];
 
   return (
@@ -134,16 +136,14 @@ const UnderemploymentCharts = () => {
       <div className="p-5 border-b border-border">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
-            <h2 className="text-xl font-bold text-foreground">Skills Mismatch & Underemployment</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Tertiary-educated workers in jobs below their qualification level — a key signal of labour market inefficiency
-            </p>
+            <h2 className="text-xl font-bold text-foreground">{t("under.title")}</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">{t("under.desc")}</p>
           </div>
           {tab === "gender" && (
             <div className="flex gap-1.5 flex-wrap">
               <button onClick={() => setYearFilter("all")}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${yearFilter === "all" ? "bg-foreground text-background" : "bg-muted border border-border text-foreground hover:bg-muted/80"}`}>
-                All
+                {t("common.all")}
               </button>
               {years.slice(-6).map(y => (
                 <button key={y} onClick={() => setYearFilter(y)}
@@ -159,23 +159,23 @@ const UnderemploymentCharts = () => {
           {[
             {
               icon: GraduationCap,
-              label: "Current Rate",
+              label: t("under.currentRate"),
               value: latestOverall ? `${latestOverall}%` : "N/A",
-              sub: change !== 0 ? `${change > 0 ? "+" : ""}${change}% vs prev quarter` : "No change",
+              sub: change !== 0 ? `${change > 0 ? "+" : ""}${change}%` : "-",
               color: change > 0 ? "text-red-500" : "text-green-500",
               bg: change > 0 ? "bg-red-500/10" : "bg-green-500/10",
             },
             {
               icon: AlertTriangle,
-              label: "Peak Rate",
+              label: t("under.peakRate"),
               value: `${peakRate}%`,
-              sub: "Highest recorded",
+              sub: t("under.highestRecorded"),
               color: "text-orange-500",
               bg: "bg-orange-500/10",
             },
             {
               icon: Users,
-              label: "Youth vs Senior",
+              label: t("under.youthVsSenior"),
               value: `${youthRate}% vs ${ageData[3].rate}%`,
               sub: "15-24 vs 45+",
               color: "text-purple-500",
@@ -183,9 +183,9 @@ const UnderemploymentCharts = () => {
             },
             {
               icon: TrendingDown,
-              label: "Most Affected",
+              label: t("under.mostAffected"),
               value: ageData.find(d => d.rate === maxAgeRate)?.label ?? "-",
-              sub: `At ${maxAgeRate}% rate`,
+              sub: `${maxAgeRate}%`,
               color: "text-red-500",
               bg: "bg-red-500/10",
             },
@@ -220,7 +220,7 @@ const UnderemploymentCharts = () => {
           {tab === "gender" && (
             <motion.div key="gender" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <p className="text-xs text-muted-foreground mb-3">
-                Quarterly skills mismatch rate by gender — are women or men more affected?
+                {t("under.genderDesc")}
               </p>
               {genderData.length > 0 ? (
                 <div className="h-[300px]">

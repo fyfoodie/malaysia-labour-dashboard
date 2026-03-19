@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import ThemeToggle from "./ThemeToggle";
+import LanguageToggle from "./LanguageToggle";
 import { BarChart3, TrendingUp, PieChart, Users, MapPin, Clock } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface DashboardHeaderProps {
   isDark: boolean;
@@ -10,16 +12,17 @@ interface DashboardHeaderProps {
   onSectionClick?: (section: string) => void;
 }
 
-const navItems = [
-  { id: "snapshot",        label: "Snapshot",        icon: BarChart3  },
-  { id: "trends",          label: "Trends",          icon: TrendingUp },
-  { id: "sectors",         label: "Sectors",         icon: PieChart   },
-  { id: "underemployment", label: "Underemployment", icon: Users      },
-  { id: "states",          label: "States",          icon: MapPin     },
-];
-
 const DashboardHeader = ({ isDark, toggleTheme, activeSection = "snapshot", onSectionClick }: DashboardHeaderProps) => {
+  const { t } = useLanguage();
   const [now, setNow] = useState(new Date());
+
+  const navItems = [
+    { id: "snapshot",        label: t("nav.snapshot"),        icon: BarChart3  },
+    { id: "trends",          label: t("nav.trends"),          icon: TrendingUp },
+    { id: "sectors",         label: t("nav.sectors"),         icon: PieChart   },
+    { id: "underemployment", label: t("nav.underemployment"), icon: Users      },
+    { id: "states",          label: t("nav.states"),          icon: MapPin     },
+  ];
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
@@ -45,8 +48,8 @@ const DashboardHeader = ({ isDark, toggleTheme, activeSection = "snapshot", onSe
             <BarChart3 className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-sm font-bold text-foreground leading-tight">Malaysia Labour Market</h1>
-            <p className="text-xs text-muted-foreground">Employment Dashboard</p>
+            <h1 className="text-sm font-bold text-foreground leading-tight">{t("header.title")}</h1>
+            <p className="text-xs text-muted-foreground">{t("header.subtitle")}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -54,6 +57,7 @@ const DashboardHeader = ({ isDark, toggleTheme, activeSection = "snapshot", onSe
             <Clock className="h-3.5 w-3.5" />
             <span>{formatter.format(now)}</span>
           </div>
+          <LanguageToggle />
           <ThemeToggle isDark={isDark} toggle={toggleTheme} />
         </div>
       </div>
