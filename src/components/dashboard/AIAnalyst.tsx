@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLabourData } from "@/context/LabourDataContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { Sparkles, Send, X, ChevronDown, Loader2, RotateCcw, ExternalLink } from "lucide-react";
 
 const SUGGESTED_QUESTIONS = [
