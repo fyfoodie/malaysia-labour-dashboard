@@ -350,7 +350,7 @@ The user is asking about Malaysia's labour market. Answer helpfully and accurate
                   value={input}
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && !e.shiftKey && ask(input)}
-                  placeholder="Ask anything about Malaysia's job market..."
+                  placeholder={t("ai.placeholder")}
                   className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
                 />
                 <button
