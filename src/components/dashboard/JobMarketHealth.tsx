@@ -363,7 +363,7 @@ const JobMarketHealth = () => {
                 <div className="flex items-start gap-2">
                   <Lightbulb className="h-4 w-4 text-yellow-400 mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs font-bold text-foreground mb-1">Insight</p>
+                    <p className="text-xs font-bold text-foreground mb-1">{t("job.insight")}</p>
                     <p className="text-sm text-muted-foreground leading-relaxed">{result.insight}</p>
                   </div>
                 </div>
