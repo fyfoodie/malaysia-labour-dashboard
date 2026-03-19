@@ -165,8 +165,8 @@ const StateMap = () => {
       {/* Map + Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
         <div className="lg:col-span-2 p-5 relative">
-          <h3 className="text-sm font-semibold text-foreground mb-1">{metricLabel} Choropleth</h3>
-          <p className="text-xs text-muted-foreground mb-3">Click a state to pin details • Hover to preview</p>
+          <h3 className="text-sm font-semibold text-foreground mb-1">{metricLabel}</h3>
+          <p className="text-xs text-muted-foreground mb-3">{t("state.clickState")}</p>
 
           {geoData.length > 0 ? (
             <div className="relative">
