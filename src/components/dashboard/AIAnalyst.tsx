@@ -313,7 +313,7 @@ The user is asking about Malaysia's labour market. Answer helpfully and accurate
                   className="flex justify-start">
                   <div className="bg-muted rounded-2xl rounded-bl-sm px-4 py-3 flex items-center gap-2">
                     <Loader2 className="h-3.5 w-3.5 text-primary animate-spin" />
-                    <span className="text-xs text-muted-foreground">Analysing data + searching web...</span>
+                    <span className="text-xs text-muted-foreground">{t("ai.analysing")}</span>
                   </div>
                 </motion.div>
               )}
