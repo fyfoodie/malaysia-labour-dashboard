@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLabourData } from "@/context/LabourDataContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { TrendingUp, TrendingDown, Briefcase, MapPin } from "lucide-react";
 
 type Metric = "u_rate" | "p_rate";
