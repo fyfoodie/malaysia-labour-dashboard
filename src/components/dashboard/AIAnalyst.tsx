@@ -98,7 +98,7 @@ LIVE MALAYSIA LABOUR MARKET DATA (from DOSM — Department of Statistics Malaysi
     if (open && messages.length === 0) {
       setMessages([{
         role: "assistant",
-        content: "Hi! I'm your Malaysia Labour Market AI Analyst. I have access to live DOSM data and can search current news to answer your questions. Ask me anything — about employment trends, sectors, states, or Malaysia's economy.",
+        content: t("ai.welcome"),
         timestamp: new Date(),
       }]);
     }
