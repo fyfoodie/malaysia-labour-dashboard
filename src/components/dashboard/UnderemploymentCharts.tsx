@@ -21,6 +21,7 @@ type Tab = "gender" | "age" | "trend";
 
 const UnderemploymentCharts = () => {
   const { data, loading } = useLabourData();
+  const { t } = useLanguage();
   const [tab, setTab] = useState<Tab>("gender");
   const [yearFilter, setYearFilter] = useState<number | "all">("all");
 
