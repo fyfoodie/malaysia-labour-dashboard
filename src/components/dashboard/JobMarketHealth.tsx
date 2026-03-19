@@ -182,14 +182,10 @@ const JobMarketHealth = () => {
         {/* ── Title ── */}
         <div className="text-center space-y-1">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/8 text-xs font-semibold text-primary tracking-widest uppercase mb-2">
-            <Search className="h-3 w-3" /> Personalised Analysis
+            <Search className="h-3 w-3" /> {t("job.personalised")}
           </div>
-          <h3 className="text-2xl md:text-3xl font-extrabold text-foreground">
-            Check Your Job Market Health
-          </h3>
-          <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            Select a location and industry to see a personalised labour health score.
-          </p>
+          <h3 className="text-2xl md:text-3xl font-extrabold text-foreground">{t("job.title")}</h3>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">{t("job.desc")}</p>
         </div>
 
         {/* ── Selectors ── */}
