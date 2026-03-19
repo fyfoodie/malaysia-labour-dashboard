@@ -220,7 +220,7 @@ const UnderemploymentCharts = () => {
           {tab === "gender" && (
             <motion.div key="gender" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <p className="text-xs text-muted-foreground mb-3">
-                Quarterly skills mismatch rate by gender — are women or men more affected?
+                {t("under.genderDesc")}
               </p>
               {genderData.length > 0 ? (
                 <div className="h-[300px]">
