@@ -143,10 +143,10 @@ const StateMap = () => {
         {/* KPI strip */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
           {[
-            { label: "Avg Unemployment", value: `${avgUnemployment}%`, icon: TrendingDown, color: "text-red-500",    bg: "bg-red-500/10"    },
-            { label: "Avg Participation", value: `${avgParticipation}%`, icon: TrendingUp, color: "text-green-500",  bg: "bg-green-500/10"  },
-            { label: "Best Unemployment", value: `${Math.min(...latestData.map((d: any) => d.u_rate ?? 99))}%`, icon: Briefcase, color: "text-blue-500", bg: "bg-blue-500/10" },
-            { label: "States Tracked",   value: `${latestData.length}`, icon: MapPin,      color: "text-purple-500", bg: "bg-purple-500/10" },
+            { label: t("state.avgUnemployment"), value: `${avgUnemployment}%`, icon: TrendingDown, color: "text-red-500",    bg: "bg-red-500/10"    },
+            { label: t("state.avgParticipation"), value: `${avgParticipation}%`, icon: TrendingUp, color: "text-green-500",  bg: "bg-green-500/10"  },
+            { label: t("state.bestUnemployment"), value: `${Math.min(...latestData.map((d: any) => d.u_rate ?? 99))}%`, icon: Briefcase, color: "text-blue-500", bg: "bg-blue-500/10" },
+            { label: t("state.statesTracked"),   value: `${latestData.length}`, icon: MapPin,      color: "text-purple-500", bg: "bg-purple-500/10" },
           ].map((kpi, i) => (
             <motion.div key={kpi.label}
               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
