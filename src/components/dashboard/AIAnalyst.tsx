@@ -362,7 +362,7 @@ The user is asking about Malaysia's labour market. Answer helpfully and accurate
                 </button>
               </div>
               <p className="text-xs text-muted-foreground mt-1.5 text-center">
-                Powered by Gemini 2.0 Flash · Live DOSM data · Web search enabled
+                {t("ai.powered")}
               </p>
             </div>
           </motion.div>

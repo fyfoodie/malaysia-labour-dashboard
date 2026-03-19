@@ -217,7 +217,7 @@ const SectorChart = () => {
           {view === "trend" && (
             <motion.div key="trend" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <p className="text-xs text-muted-foreground mb-3">
-                How each sector's share of total employment has evolved since 2005
+                {t("sectors.trendDesc")}
               </p>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">

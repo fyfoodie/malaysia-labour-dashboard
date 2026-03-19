@@ -415,7 +415,7 @@ const JobMarketHealth = () => {
               {/* Suggestions */}
               {result.suggestions.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs font-bold text-foreground">Suggestions for You</p>
+                  <p className="text-xs font-bold text-foreground">{t("job.suggestions")}</p>
                   {result.suggestions.map((s, i) => (
                     <motion.div
                       key={i}
