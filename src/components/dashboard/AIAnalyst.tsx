@@ -248,7 +248,7 @@ The user is asking about Malaysia's labour market. Answer helpfully and accurate
             className="fixed bottom-6 right-6 z-[100] flex items-center gap-2 px-4 py-3 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl font-semibold text-sm"
           >
             <Sparkles className="h-4 w-4" />
-            Ask AI Analyst
+            {t("ai.button")}
           </motion.button>
         )}
       </AnimatePresence>
