@@ -330,7 +330,7 @@ The user is asking about Malaysia's labour market. Answer helpfully and accurate
             {/* Suggested questions — only show at start */}
             {messages.length <= 1 && (
               <div className="px-4 pb-2">
-                <p className="text-xs text-muted-foreground mb-2">Suggested questions:</p>
+                <p className="text-xs text-muted-foreground mb-2">{t("ai.suggested")}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {SUGGESTED_QUESTIONS.slice(0, 4).map(q => (
                     <button key={q} onClick={() => ask(q)}
