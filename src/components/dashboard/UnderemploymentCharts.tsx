@@ -136,10 +136,8 @@ const UnderemploymentCharts = () => {
       <div className="p-5 border-b border-border">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
-            <h2 className="text-xl font-bold text-foreground">Skills Mismatch & Underemployment</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Tertiary-educated workers in jobs below their qualification level — a key signal of labour market inefficiency
-            </p>
+            <h2 className="text-xl font-bold text-foreground">{t("under.title")}</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">{t("under.desc")}</p>
           </div>
           {tab === "gender" && (
             <div className="flex gap-1.5 flex-wrap">
