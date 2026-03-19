@@ -222,12 +222,12 @@ const JobMarketHealth = () => {
             {analysing ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Analysing…
+                {t("job.analysing")}
               </>
             ) : (
               <>
                 <Activity className="h-4 w-4" />
-                Analyze Job Market
+                {t("job.analyze")}
               </>
             )}
           </Button>
