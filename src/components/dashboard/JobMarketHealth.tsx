@@ -257,7 +257,7 @@ const JobMarketHealth = () => {
               className="text-center py-10 space-y-3"
             >
               <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-              <p className="text-sm text-muted-foreground">Analyzing labour market…</p>
+              <p className="text-sm text-muted-foreground">{t("job.analyzingMarket")}</p>
             </motion.div>
           )}
 
