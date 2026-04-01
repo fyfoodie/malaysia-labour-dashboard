@@ -245,7 +245,7 @@ The user is asking about Malaysia's labour market. Answer helpfully and accurate
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setOpen(true)}
-            className="fixed bottom-6 right-6 z-[100] flex items-center gap-2 px-4 py-3 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl font-semibold text-sm"
+            className="fixed bottom-6 right-4 z-[100] flex items-center gap-2 px-4 py-3 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl font-semibold text-sm"
           >
             <Sparkles className="h-4 w-4" />
             {t("ai.button")}
@@ -261,8 +261,8 @@ The user is asking about Malaysia's labour market. Answer helpfully and accurate
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed bottom-6 right-6 z-[100] w-[90vw] max-w-md bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
-            style={{ height: "min(600px, 80vh)" }}
+            className="fixed bottom-6 right-2 left-2 md:left-auto md:right-6 z-[100] md:w-[90vw] md:max-w-md bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            style={{ height: "min(600px, 75vh)" }}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">

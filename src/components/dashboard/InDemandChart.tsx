@@ -32,10 +32,7 @@ const InDemandChart = () => {
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie data={pieData} cx="50%" cy="50%" outerRadius={130} innerRadius={60} dataKey="value" paddingAngle={2}
-                label={({ name, percentage, x, y }) => (
-                  <text x={x} y={y} fill="hsl(var(--foreground))" fontSize={11} textAnchor="middle">{`${name} (${percentage}%)`}</text>
-                )}
-                labelLine={{ stroke: "hsl(var(--muted-foreground))", strokeWidth: 1 }}>
+                >
                 {pieData.map((_, index) => <Cell key={index} fill={COLORS[index % COLORS.length]} />)}
               </Pie>
               <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "13px", color: "hsl(var(--foreground))" }}

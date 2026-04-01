@@ -19,9 +19,12 @@ interface StateEconData {
   opportunityScore: number;
 }
 
+const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 const PROXY = (id: string, limit = 500) =>
-  `/.netlify/functions/dosm-proxy?id=${id}&limit=${limit}`;
-
+  isLocal
+    ? `https://corsproxy.io/?${encodeURIComponent(`https://api.data.gov.my/data-catalogue?id=${id}&limit=${limit}`)}`
+    : `/.netlify/functions/dosm-proxy?id=${id}&limit=${limit}`;
+    
 // Static HIES 2022 poverty incidence fallback (source: DOSM HIES 2022 report)
 const POVERTY_FALLBACK: Record<string, number> = {
   "Sabah":               19.5,

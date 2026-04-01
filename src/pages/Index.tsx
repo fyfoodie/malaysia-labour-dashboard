@@ -45,7 +45,7 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-24 md:pb-0">
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 space-y-6">
 
         <div className="sticky top-4 z-50">
@@ -143,7 +143,6 @@ const Index = () => {
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1.5 h-6 rounded-full bg-primary" />
             <Briefcase className="h-5 w-5 text-primary" />
-            <span className="text-sm text-muted-foreground">{t("section.wages")}</span>
           </div>
         </section>
 

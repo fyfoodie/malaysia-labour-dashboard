@@ -87,7 +87,7 @@ const DashboardHeader = ({ isDark, toggleTheme, activeSection = "snapshot", onSe
             <button
               key={item.id}
               onClick={() => onSectionClick?.(item.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+              className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap md:px-3 md:text-sm md:gap-1.5 ${
                 isActive
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
