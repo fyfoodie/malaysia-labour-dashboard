@@ -56,9 +56,11 @@ function normaliseState(rows: any[]): any[] {
 
 export async function fetchAllLabourData(): Promise<LabourData | null> {
   try {
-    const DOSM = "https://api.data.gov.my/data-catalogue";
+    const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
     const proxy = (id: string, limit: number) =>
-      `/.netlify/functions/dosm-proxy?id=${id}&limit=${limit}`;
+      isLocal
+        ? `https://corsproxy.io/?${encodeURIComponent(`https://api.data.gov.my/data-catalogue?id=${id}&limit=${limit}`)}`
+        : `/.netlify/functions/dosm-proxy?id=${id}&limit=${limit}`;
 
     const requests = [
       fetchWithRetry(proxy("lfs_month", 2000)),
