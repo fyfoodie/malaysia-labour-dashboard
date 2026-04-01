@@ -187,7 +187,7 @@ const Index = () => {
           <p>{t("footer.text")} <a href="https://open.dosm.gov.my" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">DOSM Open Data</a> · {t("footer.updated")} · {t("footer.built")} 🇲🇾</p>
         </footer>
 
-        <AIAnalyst apiKey="AIzaSyCACjsWLrIPBj_27G9lWhYMr9ij197A1U0" />
+        <AIAnalyst apiKey={import.meta.env.VITE_GEMINI_API_KEY ?? ""} />
       </div>
     </div>
   );

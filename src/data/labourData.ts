@@ -58,7 +58,7 @@ export async function fetchAllLabourData(): Promise<LabourData | null> {
   try {
     const DOSM = "https://api.data.gov.my/data-catalogue";
     const proxy = (id: string, limit: number) =>
-      `https://corsproxy.io/?${encodeURIComponent(`${DOSM}?id=${id}&limit=${limit}`)}`;
+      `/.netlify/functions/dosm-proxy?id=${id}&limit=${limit}`;
 
     const requests = [
       fetchWithRetry(proxy("lfs_month", 2000)),
