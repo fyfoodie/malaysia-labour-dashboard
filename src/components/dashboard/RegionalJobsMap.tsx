@@ -20,7 +20,7 @@ interface StateEconData {
 }
 
 const PROXY = (id: string, limit = 500) =>
-  `https://corsproxy.io/?${encodeURIComponent(`https://api.data.gov.my/data-catalogue?id=${id}&limit=${limit}`)}`;
+  `/.netlify/functions/dosm-proxy?id=${id}&limit=${limit}`;
 
 // Static HIES 2022 poverty incidence fallback (source: DOSM HIES 2022 report)
 const POVERTY_FALLBACK: Record<string, number> = {
