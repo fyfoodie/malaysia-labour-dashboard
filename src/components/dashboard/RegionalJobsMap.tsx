@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLabourData } from "@/context/LabourDataContext";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell,
@@ -20,6 +21,26 @@ interface StateEconData {
 
 const PROXY = (id: string, limit = 500) =>
   `https://corsproxy.io/?${encodeURIComponent(`https://api.data.gov.my/data-catalogue?id=${id}&limit=${limit}`)}`;
+
+// Static HIES 2022 poverty incidence fallback (source: DOSM HIES 2022 report)
+const POVERTY_FALLBACK: Record<string, number> = {
+  "Sabah":               19.5,
+  "Kelantan":             8.2,
+  "Kedah":                6.5,
+  "Sarawak":              6.2,
+  "Terengganu":           5.4,
+  "Perlis":               5.3,
+  "W.P. Labuan":          4.5,
+  "Pahang":               3.3,
+  "Perak":                2.8,
+  "Negeri Sembilan":      1.3,
+  "Johor":                1.0,
+  "Melaka":               0.8,
+  "Selangor":             0.5,
+  "W.P. Kuala Lumpur":    0.4,
+  "Pulau Pinang":         0.3,
+  "W.P. Putrajaya":       0.2,
+};
 
 async function fetchJSON(url: string): Promise<any[]> {
   try {
@@ -42,6 +63,7 @@ const scoreColor = (score: number) => {
 
 const RegionalJobsMap = () => {
   const { data: labourData } = useLabourData();
+  const { t } = useLanguage();
   const [incomeData, setIncomeData] = useState<any[]>([]);
   const [hiesData,   setHiesData]   = useState<any[]>([]);
   const [loading,    setLoading]    = useState(true);
@@ -85,10 +107,14 @@ const RegionalJobsMap = () => {
       const hies = hiesByState[stateName];
       if (!inc) return;
 
-      const medianIncome     = inc.income_median  ?? inc.median ?? 0;
-      const meanIncome       = inc.income_mean    ?? inc.mean   ?? 0;
-      const gini             = hies?.gini         ?? 0;
-      const povertyRate      = hies?.poverty_rate ?? hies?.incidence_poverty ?? 0;
+      const medianIncome  = inc.income_median ?? inc.median ?? 0;
+      const meanIncome    = inc.income_mean   ?? inc.mean   ?? 0;
+      const gini          = inc?.gini ?? hies?.gini ?? 0;
+      // hies_state uses "poverty_absolute" for poverty incidence rate
+      const povertyRate   =
+        hies?.poverty_absolute ?? hies?.poverty_rate ?? hies?.incidence_poverty ??
+        inc?.poverty_absolute  ?? inc?.poverty_relative ?? inc?.poverty_rate ??
+        POVERTY_FALLBACK[stateName] ?? 0;
       const unemploymentRate = lfs.u_rate         ?? 0;
       const participationRate = lfs.p_rate        ?? 0;
 
@@ -135,8 +161,8 @@ const RegionalJobsMap = () => {
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
         className="rounded-2xl bg-card border border-border p-5 shadow-sm">
-        <h2 className="text-xl font-bold text-foreground mb-1">State Economic Opportunity Index</h2>
-        <p className="text-sm text-muted-foreground mb-4">Loading live data from DOSM...</p>
+        <h2 className="text-xl font-bold text-foreground mb-1">{t("regional.title")}</h2>
+        <p className="text-sm text-muted-foreground mb-4">{t("regional.loading")}</p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[...Array(8)].map((_, i) => <div key={i} className="h-20 rounded-xl bg-muted animate-pulse" />)}
         </div>
@@ -158,17 +184,17 @@ const RegionalJobsMap = () => {
       <div className="p-5 border-b border-border">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
-            <h2 className="text-xl font-bold text-foreground">State Economic Opportunity Index</h2>
+            <h2 className="text-xl font-bold text-foreground">{t("regional.title")}</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Composite score: household income, unemployment, poverty & equality — live from DOSM
+              {t("regional.desc")}
             </p>
           </div>
           <div className="flex gap-1.5 flex-wrap">
             {([
-              { key: "opportunityScore", label: "Score"     },
-              { key: "medianIncome",     label: "Income"    },
-              { key: "unemploymentRate", label: "Unemploy." },
-              { key: "povertyRate",      label: "Poverty"   },
+              { key: "opportunityScore", label: t("regional.score")   },
+              { key: "medianIncome",     label: t("regional.income")  },
+              { key: "unemploymentRate", label: t("regional.unemploy") },
+              { key: "povertyRate",      label: t("regional.poverty") },
             ] as const).map(s => (
               <button key={s.key} onClick={() => setSortBy(s.key)}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
@@ -187,7 +213,7 @@ const RegionalJobsMap = () => {
           <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-3">
             <div className="flex items-center gap-2 mb-2">
               <Star className="h-3.5 w-3.5 text-green-500" />
-              <span className="text-xs font-semibold text-foreground">Top Opportunity States</span>
+              <span className="text-xs font-semibold text-foreground">{t("regional.topStates")}</span>
             </div>
             {top3.map((s, i) => (
               <div key={s.state} className="flex items-center justify-between py-1">
@@ -207,7 +233,7 @@ const RegionalJobsMap = () => {
           <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3">
             <div className="flex items-center gap-2 mb-2">
               <AlertCircle className="h-3.5 w-3.5 text-red-500" />
-              <span className="text-xs font-semibold text-foreground">Needs Attention</span>
+              <span className="text-xs font-semibold text-foreground">{t("regional.needsAttention")}</span>
             </div>
             {bottom3.map((s, i) => (
               <div key={s.state} className="flex items-center justify-between py-1">
@@ -231,10 +257,10 @@ const RegionalJobsMap = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
         <div className="lg:col-span-2 p-5 border-b lg:border-b-0 lg:border-r border-border">
           <h3 className="text-xs font-semibold text-foreground mb-3">
-            {sortBy === "opportunityScore"  && "Opportunity Score by State"}
-            {sortBy === "medianIncome"      && "Median Monthly Household Income (RM)"}
-            {sortBy === "unemploymentRate"  && "Unemployment Rate (%) — lower is better"}
-            {sortBy === "povertyRate"       && "Poverty Incidence (%) — lower is better"}
+            {sortBy === "opportunityScore"  && t("regional.barScore")}
+            {sortBy === "medianIncome"      && t("regional.barIncome")}
+            {sortBy === "unemploymentRate"  && t("regional.barUrate")}
+            {sortBy === "povertyRate"       && t("regional.barPoverty")}
           </h3>
           <div className="h-[380px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -252,7 +278,7 @@ const RegionalJobsMap = () => {
                   contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "12px" }}
                   formatter={(value: number) => [
                     sortBy === "medianIncome" ? `RM ${value.toLocaleString()}` : `${value}${sortBy === "opportunityScore" ? "/100" : "%"}`,
-                    sortBy === "opportunityScore" ? "Score" : sortBy === "medianIncome" ? "Median Income" : sortBy === "unemploymentRate" ? "Unemployment" : "Poverty Rate"
+                    sortBy === "opportunityScore" ? t("regional.tooltipScore") : sortBy === "medianIncome" ? t("regional.tooltipMedian") : sortBy === "unemploymentRate" ? t("regional.tooltipUnemp") : t("regional.tooltipPoverty"),
                   ]}
                   labelStyle={{ fontWeight: 600 }}
                   cursor={{ fill: "hsl(var(--muted)/0.3)" }}
@@ -268,7 +294,7 @@ const RegionalJobsMap = () => {
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <p className="text-xs text-muted-foreground mt-2 text-center">Click any bar to see full state profile</p>
+          <p className="text-xs text-muted-foreground mt-2 text-center">{t("regional.clickBarShort")}</p>
         </div>
 
         {/* Detail panel */}
@@ -283,7 +309,7 @@ const RegionalJobsMap = () => {
                   <div>
                     <h3 className="text-base font-bold text-foreground">{selectedData.state}</h3>
                     <div className="flex items-center gap-1 mt-0.5">
-                      <span className="text-xs text-muted-foreground">Score:</span>
+                      <span className="text-xs text-muted-foreground">{t("regional.scoreLabel")}</span>
                       <span className="text-sm font-bold" style={{ color: scoreColor(selectedData.opportunityScore) }}>
                         {selectedData.opportunityScore}/100
                       </span>
@@ -308,12 +334,12 @@ const RegionalJobsMap = () => {
 
                 <div className="grid grid-cols-2 gap-2 mt-auto">
                   {[
-                    { label: "Median Income",  value: `RM ${selectedData.medianIncome.toLocaleString()}`,  color: "text-green-500"  },
-                    { label: "Mean Income",    value: `RM ${selectedData.meanIncome.toLocaleString()}`,    color: "text-blue-500"   },
-                    { label: "Unemployment",   value: `${selectedData.unemploymentRate}%`,                 color: selectedData.unemploymentRate > 4 ? "text-red-500" : "text-green-500" },
-                    { label: "Participation",  value: `${selectedData.participationRate}%`,                color: "text-blue-500"   },
-                    { label: "Poverty Rate",   value: selectedData.povertyRate ? `${selectedData.povertyRate}%` : "N/A", color: "text-orange-500" },
-                    { label: "Gini Index",     value: selectedData.gini ? selectedData.gini.toFixed(3) : "N/A", color: "text-purple-500" },
+                    { label: t("regional.medianIncome"),       value: `RM ${selectedData.medianIncome.toLocaleString()}`,  color: "text-green-500"  },
+                    { label: t("regional.meanIncome"),         value: `RM ${selectedData.meanIncome.toLocaleString()}`,    color: "text-blue-500"   },
+                    { label: t("regional.unemploymentDetail"), value: `${selectedData.unemploymentRate}%`,                 color: selectedData.unemploymentRate > 4 ? "text-red-500" : "text-green-500" },
+                    { label: t("regional.participationDetail"),value: `${selectedData.participationRate}%`,                color: "text-blue-500"   },
+                    { label: t("regional.povertyRate"),        value: selectedData.povertyRate ? `${selectedData.povertyRate}%` : "N/A", color: "text-orange-500" },
+                    { label: t("regional.giniIndex"),          value: selectedData.gini ? selectedData.gini.toFixed(3) : "N/A", color: "text-purple-500" },
                   ].map(stat => (
                     <div key={stat.label} className="rounded-lg bg-muted/40 border border-border p-2">
                       <p className="text-xs text-muted-foreground">{stat.label}</p>
@@ -329,15 +355,15 @@ const RegionalJobsMap = () => {
                 <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
                   <Star className="h-6 w-6 text-muted-foreground" />
                 </div>
-                <p className="text-sm font-medium text-foreground">Select a state</p>
-                <p className="text-xs text-muted-foreground">Click any bar to see full economic profile with radar breakdown</p>
+                <p className="text-sm font-medium text-foreground">{t("regional.selectState")}</p>
+                <p className="text-xs text-muted-foreground">{t("regional.clickBar")}</p>
                 <div className="mt-3 space-y-1 w-full">
                   {[
-                    { range: "75–100", label: "High Opportunity",  color: "#22c55e" },
-                    { range: "60–74",  label: "Good Opportunity",  color: "#84cc16" },
-                    { range: "45–59",  label: "Moderate",          color: "#eab308" },
-                    { range: "30–44",  label: "Needs Improvement", color: "#f97316" },
-                    { range: "0–29",   label: "Challenging",       color: "#ef4444" },
+                    { range: "75–100", label: t("regional.highOpp"),          color: "#22c55e" },
+                    { range: "60–74",  label: t("regional.goodOpp"),          color: "#84cc16" },
+                    { range: "45–59",  label: t("regional.moderate"),         color: "#eab308" },
+                    { range: "30–44",  label: t("regional.needsImprovement"), color: "#f97316" },
+                    { range: "0–29",   label: t("regional.challenging"),      color: "#ef4444" },
                   ].map(l => (
                     <div key={l.range} className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-1.5">
@@ -378,7 +404,7 @@ const RegionalJobsMap = () => {
 
       <div className="px-5 pb-4">
         <p className="text-xs text-muted-foreground">
-          Sources:{" "}
+          {t("common.sources")}:{" "}
           <a href="https://open.dosm.gov.my/data-catalogue/hh_income_state" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">DOSM Household Income</a>
           {" · "}
           <a href="https://open.dosm.gov.my/data-catalogue/hies_state" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">HIES Poverty & Gini</a>

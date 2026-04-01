@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { AlertTriangle, TrendingUp, TrendingDown, BarChart3 } from "lucide-react";
 import { labourMarketData } from "@/data/labourMarketData";
 import { latestStateData } from "@/data/labourData";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Alert {
   type: "warning" | "positive" | "info";
@@ -17,9 +18,10 @@ const alertStyles = {
 };
 
 const TrendAlerts = () => {
+  const { t } = useLanguage();
+
   const alerts = useMemo<Alert[]>(() => {
     const latest = labourMarketData[labourMarketData.length - 1];
-    const prev = labourMarketData[labourMarketData.length - 2];
     const threeMonthsAgo = labourMarketData[labourMarketData.length - 4];
     const result: Alert[] = [];
 
@@ -28,13 +30,13 @@ const TrendAlerts = () => {
       result.push({
         type: "warning",
         icon: <AlertTriangle className="h-4 w-4" />,
-        text: `Unemployment rate rose from ${threeMonthsAgo.uRate}% to ${latest.uRate}% over the past 3 months.`,
+        text: `${t("alert.uRateRose")} ${threeMonthsAgo.uRate}% ${t("alert.rateConnector")} ${latest.uRate}% ${t("alert.overPast3Months")}`,
       });
     } else if (latest.uRate < threeMonthsAgo.uRate) {
       result.push({
         type: "positive",
         icon: <TrendingDown className="h-4 w-4" />,
-        text: `Unemployment rate dropped from ${threeMonthsAgo.uRate}% to ${latest.uRate}% over the past 3 months.`,
+        text: `${t("alert.uRateDropped")} ${threeMonthsAgo.uRate}% ${t("alert.rateConnector")} ${latest.uRate}% ${t("alert.overPast3Months")}`,
       });
     }
 
@@ -44,7 +46,7 @@ const TrendAlerts = () => {
       result.push({
         type: "warning",
         icon: <AlertTriangle className="h-4 w-4" />,
-        text: `${highUnempStates.length} state${highUnempStates.length > 1 ? "s" : ""} ha${highUnempStates.length > 1 ? "ve" : "s"} unemployment above 4%: ${highUnempStates.map(s => s.state).join(", ")}.`,
+        text: `${highUnempStates.length} ${t("alert.statesHighUnemp")} ${highUnempStates.map(s => s.state).join(", ")}.`,
       });
     }
 
@@ -53,7 +55,7 @@ const TrendAlerts = () => {
       result.push({
         type: "positive",
         icon: <TrendingUp className="h-4 w-4" />,
-        text: `Labour force participation is trending upward at ${latest.pRate}%.`,
+        text: `${t("alert.lfprTrendingUp")} ${latest.pRate}%.`,
       });
     }
 
@@ -62,13 +64,13 @@ const TrendAlerts = () => {
       result.push({
         type: "positive",
         icon: <BarChart3 className="h-4 w-4" />,
-        text: `Employment grew by ${latest.employmentChange.toFixed(1)}k jobs last month (${latest.label}).`,
+        text: `${t("alert.empGrew")} ${latest.employmentChange.toFixed(1)}k ${t("alert.jobsLastMonth")} (${latest.label}).`,
       });
     } else if (latest.employmentChange < 0) {
       result.push({
         type: "warning",
         icon: <BarChart3 className="h-4 w-4" />,
-        text: `Employment declined by ${Math.abs(latest.employmentChange).toFixed(1)}k jobs last month.`,
+        text: `${t("alert.empDeclined")} ${Math.abs(latest.employmentChange).toFixed(1)}k ${t("alert.jobsLastMonth")}.`,
       });
     }
 
@@ -77,12 +79,12 @@ const TrendAlerts = () => {
       result.push({
         type: "info",
         icon: <TrendingUp className="h-4 w-4" />,
-        text: `Malaysia's labour force has surpassed 17 million workers (${latest.lfMillion}M).`,
+        text: `${t("alert.lfSurpassed")} (${latest.lfMillion}M).`,
       });
     }
 
     return result;
-  }, []);
+  }, [t]);
 
   return (
     <div className="flex flex-wrap gap-3">

@@ -1,15 +1,53 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLabourData } from "@/context/LabourDataContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { TrendingUp, TrendingDown, Briefcase, MapPin } from "lucide-react";
+import { TrendingUp, TrendingDown, Briefcase, MapPin, Download } from "lucide-react";
+import html2canvas from "html2canvas";
 
 type Metric = "u_rate" | "p_rate";
 
 interface GeoFeature {
   type: string;
-  properties: { state: string; code_state: number; [key: string]: any };
+  properties: { [key: string]: any };
   geometry: { type: string; coordinates: any[] };
+}
+
+// DOSM GeoJSON — try direct first, corsproxy as fallback
+const GEO_URLS = [
+  "https://raw.githubusercontent.com/dosm-malaysia/data-open/main/datasets/geodata/administrative_1_state.geojson",
+  `https://corsproxy.io/?${encodeURIComponent("https://raw.githubusercontent.com/dosm-malaysia/data-open/main/datasets/geodata/administrative_1_state.geojson")}`,
+];
+
+// Keys to try when reading the state name from GeoJSON properties
+const STATE_NAME_KEYS = ["state", "name", "NAME_1", "nm_state", "State", "Name", "shapeName"];
+
+// Normalise GeoJSON names → DOSM LFS names
+const STATE_NAME_MAP: Record<string, string> = {
+  "Wilayah Persekutuan Kuala Lumpur": "W.P. Kuala Lumpur",
+  "WP Kuala Lumpur":                  "W.P. Kuala Lumpur",
+  "Kuala Lumpur":                     "W.P. Kuala Lumpur",
+  "Federal Territory of Kuala Lumpur":"W.P. Kuala Lumpur",
+  "Wilayah Persekutuan Labuan":       "W.P. Labuan",
+  "WP Labuan":                        "W.P. Labuan",
+  "Labuan":                           "W.P. Labuan",
+  "Wilayah Persekutuan Putrajaya":    "W.P. Putrajaya",
+  "WP Putrajaya":                     "W.P. Putrajaya",
+  "Putrajaya":                        "W.P. Putrajaya",
+  "Penang":                           "Pulau Pinang",
+  "Pinang":                           "Pulau Pinang",
+  "Pulau Pinang":                     "Pulau Pinang",
+  "Negeri Sembilan":                  "Negeri Sembilan",
+};
+
+function extractStateName(properties: Record<string, any>): string {
+  for (const key of STATE_NAME_KEYS) {
+    if (properties[key]) {
+      const raw = String(properties[key]);
+      return STATE_NAME_MAP[raw] ?? raw;
+    }
+  }
+  return "";
 }
 
 const getColor = (value: number, metric: Metric): string => {
@@ -56,18 +94,40 @@ const StateMap = () => {
   const { t } = useLanguage();
   const [metric, setMetric] = useState<Metric>("u_rate");
   const [geoData, setGeoData] = useState<GeoFeature[]>([]);
+  const [geoStatus, setGeoStatus] = useState<"loading" | "loaded" | "error">("loading");
   const [hoveredState, setHoveredState] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleExport = async () => {
+    if (!cardRef.current) return;
+    const canvas = await html2canvas(cardRef.current, { scale: 2, useCORS: true });
+    const link = document.createElement("a");
+    link.download = `state-labour-map-${metric}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  };
 
   useEffect(() => {
-    fetch("https://raw.githubusercontent.com/dosm-malaysia/data-open/main/datasets/geodata/administrative_1_state.geojson")
-      .then(r => r.json())
-      .then(d => {
-        console.log("GeoJSON first feature properties:", d.features?.[0]?.properties);
-        console.log("All state names:", d.features?.map((f: any) => f.properties));
-        setGeoData(d.features || []);
-      })
-      .catch((e) => console.error("GeoJSON failed:", e));
+    const tryFetch = async () => {
+      for (const url of GEO_URLS) {
+        try {
+          const res = await fetch(url, { headers: { Accept: "application/json" } });
+          if (!res.ok) continue;
+          const d = await res.json();
+          const features: GeoFeature[] = d.features ?? [];
+          if (features.length > 0) {
+            setGeoData(features);
+            setGeoStatus("loaded");
+            return;
+          }
+        } catch {
+          // try next URL
+        }
+      }
+      setGeoStatus("error");
+    };
+    tryFetch();
   }, []);
 
   const sorted = useMemo(() =>
@@ -111,6 +171,7 @@ const StateMap = () => {
 
   return (
     <motion.div
+      ref={cardRef}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.6, duration: 0.5 }}
@@ -123,6 +184,14 @@ const StateMap = () => {
             <h2 className="text-xl font-bold text-foreground">{t("state.title")}</h2>
             <p className="text-xs text-muted-foreground mt-0.5">{latestMonth} {latestYear}</p>
           </div>
+          <div className="flex items-center gap-2">
+          <button
+            onClick={handleExport}
+            title={t("common.export")}
+            className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
+          >
+            <Download className="h-3.5 w-3.5" />
+          </button>
           <div className="flex gap-2 p-1 rounded-full bg-muted border border-border">
             {([
               { key: "u_rate" as Metric, label: t("state.unemployment") },
@@ -137,6 +206,7 @@ const StateMap = () => {
                 {m.label}
               </button>
             ))}
+          </div>
           </div>
         </div>
 
@@ -168,15 +238,30 @@ const StateMap = () => {
           <h3 className="text-sm font-semibold text-foreground mb-1">{metricLabel}</h3>
           <p className="text-xs text-muted-foreground mb-3">{t("state.clickState")}</p>
 
-          {geoData.length > 0 ? (
+          {geoStatus === "error" ? (
+            <div className="h-[300px] flex flex-col items-center justify-center gap-3 text-center">
+              <p className="text-sm text-muted-foreground">Could not load map boundary data.</p>
+              <button
+                onClick={() => { setGeoStatus("loading"); setGeoData([]); }}
+                className="text-xs px-3 py-1.5 rounded-lg border border-border hover:bg-muted/60 transition-all"
+              >
+                Retry
+              </button>
+            </div>
+          ) : geoStatus === "loading" && geoData.length === 0 ? (
+            <div className="h-[300px] flex items-center justify-center">
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : (
             <div className="relative">
               <svg viewBox="0 0 800 400" className="w-full h-auto drop-shadow-sm">
                 {geoData.map((feature, i) => {
-                  const sd       = findStateData(feature.properties.state);
-                  const value    = sd ? (sd[metric] ?? 0) : 0;
-                  const color    = sd ? getColor(value, metric) : "#e5e7eb";
-                  const isHovered  = hoveredState  === feature.properties.state;
-                  const isSelected = selectedState === feature.properties.state;
+                  const stateName  = extractStateName(feature.properties);
+                  const sd         = findStateData(stateName);
+                  const value      = sd ? (sd[metric] ?? 0) : 0;
+                  const color      = sd ? getColor(value, metric) : "#d1d5db";
+                  const isHovered  = hoveredState  === stateName;
+                  const isSelected = selectedState === stateName;
                   return (
                     <path key={i}
                       d={getStatePath(feature.geometry)}
@@ -189,11 +274,9 @@ const StateMap = () => {
                       }
                       className="cursor-pointer transition-all duration-150"
                       style={{ filter: isSelected || isHovered ? "brightness(1.1)" : "none" }}
-                      onMouseEnter={() => setHoveredState(feature.properties.state)}
+                      onMouseEnter={() => setHoveredState(stateName)}
                       onMouseLeave={() => setHoveredState(null)}
-                      onClick={() => setSelectedState(prev =>
-                        prev === feature.properties.state ? null : feature.properties.state
-                      )}
+                      onClick={() => setSelectedState(prev => prev === stateName ? null : stateName)}
                     />
                   );
                 })}
@@ -237,10 +320,6 @@ const StateMap = () => {
                 ))}
                 <span className="text-xs text-muted-foreground ml-1">{t("state.high")}</span>
               </div>
-            </div>
-          ) : (
-            <div className="h-[300px] flex items-center justify-center text-muted-foreground text-sm">
-              Loading DOSM boundary data...
             </div>
           )}
         </div>

@@ -124,7 +124,7 @@ const KPICards = () => {
                     </div>
                     {card.yoyChange !== null && (
                       <p className="text-xs text-muted-foreground mt-1.5">
-                        YoY{" "}
+                        {t("kpi.yoy")}{" "}
                         <span className={
                           (card.invertTrend ? card.yoyChange < 0 : card.yoyChange > 0) ? "text-green-500 font-semibold" :
                           (card.invertTrend ? card.yoyChange > 0 : card.yoyChange < 0) ? "text-red-500 font-semibold" :

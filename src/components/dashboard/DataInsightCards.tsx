@@ -42,8 +42,8 @@ const DataInsightCards = () => {
         content: (
           <p className="text-sm text-foreground leading-relaxed">
             <strong className="text-primary">{highestState?.state}</strong> {t("insight.highest")}{" "}
-            <strong className="text-primary">{highestState?.u_rate}%</strong>, {t("insight.lowest").replace("has the lowest at", "").trim()}{" "}
-            <strong className="text-primary">{lowestState?.state}</strong> {t("insight.lowest").includes("has") ? t("insight.lowest").split("has")[0] : ""} {t("insight.lowest").includes("at") ? t("insight.lowest").split("at").pop() : ""}{" "}
+            <strong className="text-primary">{highestState?.u_rate}%</strong>,{" "}
+            <strong className="text-primary">{lowestState?.state}</strong> {t("insight.lowest")}{" "}
             <strong className="text-primary">{lowestState?.u_rate}%</strong>.
           </p>
         ),

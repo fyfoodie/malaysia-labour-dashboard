@@ -118,18 +118,18 @@ const SectorChart = () => {
 
         <div className="mt-3 p-3 rounded-xl bg-muted/40 border border-border flex flex-wrap gap-4 text-xs">
           <span className="text-muted-foreground">
-            💡 Services sector{" "}
+            💡 {t("sectors.servicesPrefix")}{" "}
             <strong className="text-foreground">
-              {servicesGrowth >= 0 ? `grew +${servicesGrowth}pp` : `fell ${servicesGrowth}pp`}
+              {servicesGrowth >= 0 ? `${t("sectors.grew")} +${servicesGrowth}pp` : `${t("sectors.fell")} ${Math.abs(servicesGrowth)}pp`}
             </strong>{" "}
-            over the past decade
+            {t("sectors.overDecade")}
           </span>
           <span className="text-muted-foreground">
-            🌾 Agriculture share{" "}
+            🌾 {t("sectors.agriSharePrefix")}{" "}
             <strong className="text-foreground">
-              {agriDecline <= 0 ? `declined ${Math.abs(agriDecline)}pp` : `grew +${agriDecline}pp`}
+              {agriDecline <= 0 ? `${t("sectors.declined")} ${Math.abs(agriDecline)}pp` : `${t("sectors.grew")} +${agriDecline}pp`}
             </strong>{" "}
-            — Malaysia's ongoing structural transformation
+            — {t("sectors.transformation")}
           </span>
         </div>
       </div>
@@ -161,7 +161,7 @@ const SectorChart = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
                       <XAxis type="number" tick={tickStyle} unit="%" domain={[0, 80]} />
                       <YAxis type="category" dataKey="sector" tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }} width={100} />
-                      <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v}% of workforce`, "Share"]} labelStyle={{ fontWeight: 600 }} />
+                      <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v}% ${t("common.of")}`, t("sectors.share")]} labelStyle={{ fontWeight: 600 }} />
                       <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={32}>
                         {snapshotData.map((entry, i) => (
                           <Cell key={i}
@@ -241,7 +241,7 @@ const SectorChart = () => {
           {view === "shift" && (
             <motion.div key="shift" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <p className="text-xs text-muted-foreground mb-4">
-                Structural change from <strong>{tenYrAgoYear}</strong> to <strong>{latestYear}</strong> — Malaysia's economic transformation
+                {t("sectors.structuralChangeFrom")} <strong>{tenYrAgoYear}</strong> {t("sectors.structuralChangeTo")} <strong>{latestYear}</strong> — {t("sectors.econTransform")}
               </p>
               <div className="space-y-4">
                 {shiftData.map(s => {
@@ -290,7 +290,7 @@ const SectorChart = () => {
                 })}
               </div>
               <p className="text-xs text-muted-foreground mt-4 text-center">
-                pp = percentage points shift in workforce share
+                {t("sectors.ppNote")}
               </p>
             </motion.div>
           )}

@@ -34,6 +34,7 @@ const translations: Record<string, Record<Lang, string>> = {
   "section.states": { en: "How does your state compare?", bm: "Bagaimana negeri anda berbanding?" },
   "section.regional": { en: "Which state offers the best opportunities?", bm: "Negeri mana menawarkan peluang terbaik?" },
   "section.jobhealth": { en: "How good is the job market for you?", bm: "Seberapa baik pasaran kerja untuk anda?" },
+  "section.wages":     { en: "What do different industries pay?",   bm: "Berapa gaji yang dibayar oleh industri berbeza?" },
 
   // Footer
   "footer.text": { en: "Data sourced from", bm: "Sumber data daripada" },
@@ -238,6 +239,84 @@ const translations: Record<string, Record<Lang, string>> = {
   "common.loading": { en: "Loading...", bm: "Memuatkan..." },
   "common.of": { en: "of workforce", bm: "tenaga kerja" },
   "common.share": { en: "Share", bm: "Bahagian" },
+
+  // KPI extra
+  "kpi.yoy": { en: "YoY", bm: "TkT" },
+
+  // Sectors — missing pieces
+  "sectors.servicesPrefix": { en: "Services sector", bm: "Sektor Perkhidmatan" },
+  "sectors.agriSharePrefix": { en: "Agriculture share", bm: "Bahagian Pertanian" },
+  "sectors.structuralChangeFrom": { en: "Structural change from", bm: "Perubahan struktur dari" },
+  "sectors.structuralChangeTo": { en: "to", bm: "ke" },
+  "sectors.econTransform": { en: "Malaysia's economic transformation", bm: "Transformasi ekonomi Malaysia" },
+  "sectors.ppNote": { en: "pp = percentage points shift in workforce share", bm: "pp = perubahan mata peratusan dalam bahagian tenaga kerja" },
+
+  // Underemployment — missing pieces
+  "under.noRateData": { en: "No rate data available", bm: "Tiada data kadar tersedia" },
+  "under.trendNoData": { en: "Trend data not available", bm: "Data trend tidak tersedia" },
+  "under.mismatchRate": { en: "Mismatch Rate", bm: "Kadar Ketidakpadanan" },
+  "under.skillsMismatch": { en: "Skills Mismatch", bm: "Ketidakpadanan Kemahiran" },
+  "under.latestQuarter": { en: "Latest quarter", bm: "Suku terkini" },
+  "under.youthAre": { en: "are", bm: "adalah" },
+  "under.youthMoreLikely": { en: "more likely to be underemployed than workers aged 45+", bm: "lebih berkemungkinan mengalami guna tenaga tidak penuh berbanding pekerja berumur 45+" },
+
+  // Trend Alerts — all new
+  "alert.uRateRose": { en: "Unemployment rate rose from", bm: "Kadar pengangguran meningkat dari" },
+  "alert.uRateDropped": { en: "Unemployment rate dropped from", bm: "Kadar pengangguran turun dari" },
+  "alert.rateConnector": { en: "to", bm: "kepada" },
+  "alert.overPast3Months": { en: "over the past 3 months.", bm: "sepanjang 3 bulan lepas." },
+  "alert.statesHighUnemp": { en: "state(s) have unemployment above 4%:", bm: "negeri mempunyai pengangguran melebihi 4%:" },
+  "alert.lfprTrendingUp": { en: "Labour force participation is trending upward at", bm: "Penyertaan tenaga kerja berada dalam tren menaik pada" },
+  "alert.empGrew": { en: "Employment grew by", bm: "Pekerjaan meningkat sebanyak" },
+  "alert.empDeclined": { en: "Employment declined by", bm: "Pekerjaan menurun sebanyak" },
+  "alert.jobsLastMonth": { en: "jobs last month", bm: "pekerjaan bulan lepas" },
+  "alert.lfSurpassed": { en: "Malaysia's labour force has surpassed 17 million workers", bm: "Tenaga kerja Malaysia telah melepasi 17 juta pekerja" },
+
+  // Regional — missing pieces
+  "regional.loading": { en: "Loading live data from DOSM...", bm: "Memuatkan data langsung dari DOSM..." },
+  "regional.clickBarShort": { en: "Click any bar to see full state profile", bm: "Klik mana-mana bar untuk lihat profil negeri" },
+  "regional.medianIncome": { en: "Median Income", bm: "Pendapatan Median" },
+  "regional.meanIncome": { en: "Mean Income", bm: "Pendapatan Purata" },
+  "regional.povertyRate": { en: "Poverty Rate", bm: "Kadar Kemiskinan" },
+  "regional.giniIndex": { en: "Gini Index", bm: "Indeks Gini" },
+  "regional.scoreLabel": { en: "Score:", bm: "Skor:" },
+  "regional.unemploymentDetail": { en: "Unemployment", bm: "Pengangguran" },
+  "regional.participationDetail": { en: "Participation", bm: "Penyertaan" },
+  "regional.barScore": { en: "Opportunity Score by State", bm: "Skor Peluang mengikut Negeri" },
+  "regional.barIncome": { en: "Median Monthly Household Income (RM)", bm: "Pendapatan Isi Rumah Bulanan Median (RM)" },
+  "regional.barUrate": { en: "Unemployment Rate (%) — lower is better", bm: "Kadar Pengangguran (%) — lebih rendah lebih baik" },
+  "regional.barPoverty": { en: "Poverty Incidence (%) — lower is better", bm: "Insiden Kemiskinan (%) — lebih rendah lebih baik" },
+  "regional.tooltipScore": { en: "Score", bm: "Skor" },
+  "regional.tooltipMedian": { en: "Median Income", bm: "Pendapatan Median" },
+  "regional.tooltipUnemp": { en: "Unemployment", bm: "Pengangguran" },
+  "regional.tooltipPoverty": { en: "Poverty Rate", bm: "Kadar Kemiskinan" },
+
+  // Wages by Industry
+  "wages.title":    { en: "Wages by Industry",                              bm: "Gaji mengikut Industri" },
+  "wages.desc":     { en: "Formal sector median & mean wages",              bm: "Gaji median & purata sektor formal" },
+  "wages.tabMedian":{ en: "Median Wage",                                    bm: "Gaji Median" },
+  "wages.tabMean":  { en: "Mean Wage",                                      bm: "Gaji Purata" },
+  "wages.tabTrend": { en: "Trend",                                          bm: "Trend" },
+  "wages.topEarner":{ en: "Highest paying",                                 bm: "Gaji tertinggi" },
+  "wages.medianWage":{ en: "Median Wage",                                   bm: "Gaji Median" },
+  "wages.meanWage": { en: "Mean Wage",                                      bm: "Gaji Purata" },
+  "wages.trendDesc":{ en: "Median wage trend for top-paying industries",    bm: "Trend gaji median untuk industri bergaji tertinggi" },
+  "wages.noData":   { en: "No wage data available",                         bm: "Tiada data gaji tersedia" },
+
+  // Common — export
+  "common.export":  { en: "Export PNG",                                     bm: "Eksport PNG" },
+
+  // Job Market Health — missing/hardcoded
+  "job.insightSectorIn": { en: "sector in", bm: "sektor di" },
+  "job.insightShows": { en: "shows", bm: "menunjukkan" },
+  "job.insightConditions": { en: "labour market conditions, with an adjusted unemployment rate of", bm: "keadaan pasaran buruh, dengan kadar pengangguran disesuaikan sebanyak" },
+  "job.insightParticipation": { en: "and participation at", bm: "dan penyertaan pada" },
+  "job.insightDrivenBy": { en: "This is driven by", bm: "Ini didorong oleh" },
+  "job.suggestConsider": { en: "Consider", bm: "Pertimbangkan" },
+  "job.suggestStrongestIn": { en: "— strongest growth trend in", bm: "— trend pertumbuhan terkuat di" },
+  "job.suggestScoreLabel": { en: "score", bm: "skor" },
+  "job.suggestSlowerIn": { en: "shows slower recovery in", bm: "menunjukkan pemulihan lebih perlahan di" },
+  "job.suggestStable": { en: "sector has stable employment rates", bm: "sektor mempunyai kadar pekerjaan yang stabil" },
 };
 
 const LanguageContext = createContext<LanguageContextType>({

@@ -1,0 +1,2 @@
+/api-dosm/*  https://api.data.gov.my/:splat  200
+/dosm-geo/*  https://raw.githubusercontent.com/:splat  200

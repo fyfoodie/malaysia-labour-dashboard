@@ -232,14 +232,14 @@ const UnderemploymentCharts = () => {
                       <Tooltip contentStyle={tooltipStyle} labelStyle={{ fontWeight: 600 }}
                         formatter={(v: number) => [`${v.toLocaleString()}`, ""]} />
                       <Legend wrapperStyle={{ fontSize: 11 }} />
-                      <Bar dataKey="Male"   name="Male"   fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} barSize={12} />
-                      <Bar dataKey="Female" name="Female" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} barSize={12} />
+                      <Bar dataKey="Male"   name={t("common.male")}   fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} barSize={12} />
+                      <Bar dataKey="Female" name={t("common.female")} fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} barSize={12} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
                 <div className="h-[300px] flex items-center justify-center text-muted-foreground text-sm">
-                  No rate data available
+                  {t("under.noRateData")}
                 </div>
               )}
             </motion.div>
@@ -248,7 +248,7 @@ const UnderemploymentCharts = () => {
           {tab === "age" && (
             <motion.div key="age" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <p className="text-xs text-muted-foreground mb-3">
-                Latest quarter ({latestQ}) — which age group faces the most skills mismatch?
+                {t("under.latestQuarter")} ({latestQ}) — {t("under.ageDesc")}
               </p>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="h-[280px]">
@@ -258,7 +258,7 @@ const UnderemploymentCharts = () => {
                       <XAxis dataKey="age" tick={tickStyle} />
                       <YAxis tick={tickStyle} unit="%" />
                       <Tooltip contentStyle={tooltipStyle} labelStyle={{ fontWeight: 600 }}
-                        formatter={(v: number) => [`${v}%`, "Mismatch Rate"]} />
+                        formatter={(v: number) => [`${v}%`, t("under.mismatchRate")]} />
                       <Bar dataKey="rate" radius={[8, 8, 0, 0]} barSize={45}>
                         {ageData.map((d, i) => <Cell key={i} fill={d.color} />)}
                       </Bar>
@@ -293,11 +293,11 @@ const UnderemploymentCharts = () => {
                   {youthRate > 0 && (
                     <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 mt-1">
                       <p className="text-xs text-muted-foreground">
-                        💡 <strong className="text-foreground">Youth (15-24)</strong> are{" "}
+                        💡 <strong className="text-foreground">{t("under.youth")} (15-24)</strong> {t("under.youthAre")}{" "}
                         <strong className="text-red-500">
-                          {ageData[3].rate > 0 ? `${(youthRate / ageData[3].rate).toFixed(1)}x` : "significantly"}
+                          {ageData[3].rate > 0 ? `${(youthRate / ageData[3].rate).toFixed(1)}x` : "—"}
                         </strong>{" "}
-                        more likely to be underemployed than workers aged 45+
+                        {t("under.youthMoreLikely")}
                       </p>
                     </div>
                   )}
@@ -309,7 +309,7 @@ const UnderemploymentCharts = () => {
           {tab === "trend" && (
             <motion.div key="trend" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <p className="text-xs text-muted-foreground mb-3">
-                Overall skills mismatch rate trend — is Malaysia's graduate underemployment improving?
+                {t("under.trendDesc")}
               </p>
               {trendData.length > 0 ? (
                 <div className="h-[300px]">
@@ -325,7 +325,7 @@ const UnderemploymentCharts = () => {
                       <XAxis dataKey="period" tick={{ ...tickStyle, fontSize: 9 }} angle={-30} textAnchor="end" height={50} />
                       <YAxis tick={tickStyle} />
                       <Tooltip contentStyle={tooltipStyle} labelStyle={{ fontWeight: 600 }}
-                        formatter={(v: number) => [v.toLocaleString(), "Skills Mismatch"]} />
+                        formatter={(v: number) => [v.toLocaleString(), t("under.skillsMismatch")]} />
                       <Area type="monotone" dataKey="rate" name="Mismatch Rate"
                         stroke="hsl(var(--chart-2))" strokeWidth={2.5}
                         fill="url(#mismatchGrad)" dot={false} activeDot={{ r: 4 }} />
@@ -334,7 +334,7 @@ const UnderemploymentCharts = () => {
                 </div>
               ) : (
                 <div className="h-[300px] flex items-center justify-center text-muted-foreground text-sm">
-                  Trend data not available
+                  {t("under.trendNoData")}
                 </div>
               )}
             </motion.div>
@@ -342,7 +342,7 @@ const UnderemploymentCharts = () => {
         </AnimatePresence>
 
         <p className="text-xs text-muted-foreground mt-4 pt-3 border-t border-border">
-          Source:{" "}
+          {t("common.source")}:{" "}
           <a href="https://open.dosm.gov.my/data-catalogue/lfs_qtr_sru_sex" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
             DOSM Skills-Related Underemployment by Sex
           </a>

@@ -1,12 +1,13 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Legend, ReferenceLine, ComposedChart,
 } from "recharts";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useLabourData } from "@/context/LabourDataContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { TrendingUp, TrendingDown, Activity } from "lucide-react";
+import { Download } from "lucide-react";
+import html2canvas from "html2canvas";
 
 const tooltipStyle = {
   backgroundColor: "hsl(var(--card))",
@@ -25,6 +26,7 @@ const TrendCharts = () => {
   const { t } = useLanguage();
   const [selectedYear, setSelectedYear] = useState<number | "all">("all");
   const [activeTab, setActiveTab] = useState<Tab>("unemployment");
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const national = useMemo(() =>
     data?.national ? [...data.national].sort((a: any, b: any) => a.date.localeCompare(b.date)) : []
@@ -55,6 +57,15 @@ const TrendCharts = () => {
   const latest = chartData[chartData.length - 1];
   const first  = chartData[0];
 
+  const handleExport = async () => {
+    if (!cardRef.current) return;
+    const canvas = await html2canvas(cardRef.current, { scale: 2, useCORS: true });
+    const link = document.createElement("a");
+    link.download = `employment-trends-${activeTab}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  };
+
   if (loading || !data?.national?.length) {
     return <div className="rounded-2xl bg-card border border-border p-5 h-80 animate-pulse" />;
   }
@@ -70,6 +81,7 @@ const TrendCharts = () => {
 
   return (
     <motion.div
+      ref={cardRef}
       initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.5 }}
       className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden"
@@ -82,14 +94,23 @@ const TrendCharts = () => {
               {t("trends.monthly")} {first?.label} {t("insight.to")} {latest?.label}
             </p>
           </div>
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value === "all" ? "all" : Number(e.target.value))}
-            className="appearance-none px-3 py-2 pr-8 rounded-xl bg-muted border border-border text-foreground text-xs font-medium cursor-pointer hover:bg-muted/80 transition-all focus:outline-none w-fit"
-          >
-            <option value="all">{t("trends.allYears")}</option>
-            {years.map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value === "all" ? "all" : Number(e.target.value))}
+              className="appearance-none px-3 py-2 pr-8 rounded-xl bg-muted border border-border text-foreground text-xs font-medium cursor-pointer hover:bg-muted/80 transition-all focus:outline-none w-fit"
+            >
+              <option value="all">{t("trends.allYears")}</option>
+              {years.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+            <button
+              onClick={handleExport}
+              title={t("common.export")}
+              className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
+            >
+              <Download className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       </div>
 

@@ -72,8 +72,28 @@ function statusOf(score: number) {
 }
 
 /* ─── component ─── */
+const INDUSTRY_DESC_BM: Record<Industry, string> = {
+  Technology:              "permintaan tinggi untuk kemahiran digital mendorong pertumbuhan kukuh",
+  Manufacturing:           "output industri yang stabil dengan pengembangan tenaga kerja sederhana",
+  Services:                "pemulihan sektor perkhidmatan yang luas merentas industri berhadapan pengguna",
+  Construction:            "projek infrastruktur mengekalkan permintaan untuk pekerja mahir",
+  Agriculture:             "perubahan struktur mengurangkan pekerjaan pertanian tradisional",
+  "Finance & Insurance":   "pengembangan fintech dan perbankan digital meningkatkan peluang",
+  Healthcare:              "permintaan berterusan untuk profesional perubatan dan pekerja kesihatan bersekutu",
+  Education:               "pekerjaan sektor awam yang stabil dengan permintaan tuisyen swasta yang meningkat",
+  "Retail & Trade":        "pertumbuhan e-dagang mengimbangi pengurangan runcit tradisional",
+  "Tourism & Hospitality": "pemulihan pelancongan mewujudkan peranan bermusim dan sepenuh masa",
+};
+
+const STATUS_LABEL_BM: Record<string, string> = {
+  Strong: "kukuh",
+  Healthy: "sihat",
+  Recovering: "sedang pulih",
+  Weak: "lemah",
+};
+
 const JobMarketHealth = () => {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [state, setState] = useState<string>("");
   const [industry, setIndustry] = useState<string>("");
   const [analysing, setAnalysing] = useState(false);
@@ -115,7 +135,11 @@ const JobMarketHealth = () => {
       }));
 
       // dynamic insight
-      const insight = `The ${industry} sector in ${state} shows ${st.label.toLowerCase()} labour market conditions, with an adjusted unemployment rate of ${uRate}% and participation at ${pRate}%. This is driven by ${mod.desc}.`;
+      const statusLabel = lang === "bm" ? (STATUS_LABEL_BM[st.label] ?? st.label.toLowerCase()) : st.label.toLowerCase();
+      const desc = lang === "bm" ? INDUSTRY_DESC_BM[industry as Industry] : mod.desc;
+      const insight = lang === "bm"
+        ? `Sektor ${industry} di ${state} ${t("job.insightShows")} ${statusLabel} ${t("job.insightConditions")} ${uRate}% ${t("job.insightParticipation")} ${pRate}%. ${t("job.insightDrivenBy")} ${desc}.`
+        : `The ${industry} ${t("job.insightSectorIn")} ${state} ${t("job.insightShows")} ${statusLabel} ${t("job.insightConditions")} ${uRate}% ${t("job.insightParticipation")} ${pRate}%. ${t("job.insightDrivenBy")} ${desc}.`;
 
       // recommendations
       const allIndustries = Object.entries(INDUSTRY_MOD).map(([name, m]) => ({
@@ -132,14 +156,14 @@ const JobMarketHealth = () => {
       if (top.name !== industry) {
         suggestions.push({
           icon: <TrendingUp className="h-4 w-4 text-green-400" />,
-          text: `Consider ${top.name} — strongest growth trend in ${state} (score ${top.score}).`,
+          text: `${t("job.suggestConsider")} ${top.name} ${t("job.suggestStrongestIn")} ${state} (${t("job.suggestScoreLabel")} ${top.score}).`,
         });
       }
       const weak = allIndustries[allIndustries.length - 1];
       if (weak.name !== industry) {
         suggestions.push({
           icon: <TrendingDown className="h-4 w-4 text-red-400" />,
-          text: `${weak.name} shows slower recovery in ${state} (score ${weak.score}).`,
+          text: `${weak.name} ${t("job.suggestSlowerIn")} ${state} (${t("job.suggestScoreLabel")} ${weak.score}).`,
         });
       }
       const stable = allIndustries.find(
@@ -148,7 +172,7 @@ const JobMarketHealth = () => {
       if (stable) {
         suggestions.push({
           icon: <Lightbulb className="h-4 w-4 text-yellow-400" />,
-          text: `${stable.name} sector has stable employment rates (score ${stable.score}).`,
+          text: `${stable.name} ${t("job.suggestStable")} (${t("job.suggestScoreLabel")} ${stable.score}).`,
         });
       }
 
@@ -328,7 +352,7 @@ const JobMarketHealth = () => {
                         >
                           {result.score}
                         </motion.span>
-                        <span className="text-xs text-muted-foreground font-medium">out of 100</span>
+                        <span className="text-xs text-muted-foreground font-medium">{t("health.outOf")}</span>
                       </div>
                     </div>
                   </div>
@@ -336,7 +360,7 @@ const JobMarketHealth = () => {
                   {/* status badge */}
                   <div className="flex justify-center mt-2">
                     <span className={`px-3 py-1 rounded-full border text-xs font-bold ${status.bg}`}>
-                      {status.label}
+                      {lang === "bm" ? (STATUS_LABEL_BM[status.label] ?? status.label) : status.label}
                     </span>
                   </div>
 
@@ -397,7 +421,7 @@ const JobMarketHealth = () => {
                         }}
                         labelStyle={{ color: "hsl(var(--foreground))" }}
                         itemStyle={{ color: "hsl(var(--foreground))" }}
-                        formatter={(v: number) => [`${v}%`, "Unemployment"]}
+                        formatter={(v: number) => [`${v}%`, t("job.unemployment")]}
                       />
                       <Line
                         type="monotone"

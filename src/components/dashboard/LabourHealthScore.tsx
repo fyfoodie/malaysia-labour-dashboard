@@ -75,18 +75,18 @@ const LabourHealthScore = () => {
 
         <div className="flex justify-center">
           <div className="relative">
-            <svg width="240" height="135" viewBox="0 0 240 135">
+            <svg width="240" height="148" viewBox="0 0 240 148">
               <path d={`M 16 128 A ${R + 8} ${R + 8} 0 0 1 224 128`} fill="none" stroke="hsl(var(--border))" strokeWidth="1" strokeDasharray="3 5" strokeLinecap="round" />
               <path d={`M 24 128 A ${R} ${R} 0 0 1 216 128`} fill="none" stroke="hsl(var(--muted))" strokeWidth="16" strokeLinecap="round" />
               <motion.path d={`M 24 128 A ${R} ${R} 0 0 1 216 128`} fill="none" stroke={ringColor} strokeWidth="16" strokeLinecap="round"
                 strokeDasharray={circumference} initial={{ strokeDashoffset: circumference }} animate={{ strokeDashoffset: dashOffset }}
                 transition={{ duration: 1.8, ease: "easeOut" }} style={{ filter: `drop-shadow(0 0 6px ${ringColor}80)` }} />
-              <text x="18"  y="128" textAnchor="middle" fontSize="8" fill="hsl(var(--muted-foreground))">0</text>
-              <text x="222" y="128" textAnchor="middle" fontSize="8" fill="hsl(var(--muted-foreground))">100</text>
-              <text x="120" y="22"  textAnchor="middle" fontSize="8" fill="hsl(var(--muted-foreground))">50</text>
+              <text x="24"  y="145" textAnchor="middle" fontSize="9" fill="hsl(var(--muted-foreground))">0</text>
+              <text x="216" y="145" textAnchor="middle" fontSize="9" fill="hsl(var(--muted-foreground))">100</text>
+              <text x="120" y="22"  textAnchor="middle" fontSize="9" fill="hsl(var(--muted-foreground))">50</text>
             </svg>
 
-            <div className="absolute inset-0 flex flex-col items-center justify-end pb-3">
+            <div className="absolute inset-0 flex flex-col items-center justify-end pb-8">
               <motion.span className="text-6xl font-black leading-none" style={{ color: ringColor }}
                 initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.8, type: "spring", stiffness: 200 }}>

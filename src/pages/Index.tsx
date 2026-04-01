@@ -139,6 +139,14 @@ const Index = () => {
           <InDemandChart />
         </section>
 
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-1.5 h-6 rounded-full bg-primary" />
+            <Briefcase className="h-5 w-5 text-primary" />
+            <span className="text-sm text-muted-foreground">{t("section.wages")}</span>
+          </div>
+        </section>
+
         <section id="section-underemployment">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1.5 h-6 rounded-full bg-primary" />
