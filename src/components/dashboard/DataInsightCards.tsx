@@ -114,7 +114,7 @@ const NewsCard = ({ item, index }: { item: Article; index: number }) => {
 
 const DataInsightCards = () => {
   const [articles, setArticles]   = useState<Article[]>([]);
-  const [page, setPage]           = useState(0); // 0 = first 4, 1 = next 4
+  const [page, setPage]           = useState(0); 
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState(false);
   const [direction, setDirection] = useState<"next" | "prev">("next");
@@ -125,136 +125,20 @@ const DataInsightCards = () => {
     setError(false);
     setPage(0);
     try {
-      const isLocal = window.location.hostname === "localhost" ||
-                      window.location.hostname === "127.0.0.1";
-
-      let items: Article[] = [];
-
-      if (isLocal) {
-        // On localhost — fetch via Vite proxy
-        const q = encodeURIComponent(
-        "Malaysia jobs OR employment OR wages OR workforce OR economy OR retrenchment OR hiring OR tariff when:7d"
-         );
-        const res = await fetch(`/news-proxy/search?q=${q}&hl=en-MY&gl=MY&ceid=MY:en&scoring=n`);
-        const text = await res.text();
-        console.log("RSS response:", text.slice(0, 500)); // ADD THIS
-        const parser = new DOMParser();
-
-        const JOB_TERMS = ['job','employ','unemploy','labour','worker','workforce','hiring',
-          'retrench','layoff','wage','salary','minimum wage','epf','socso','graduate',
-          'talent','skill','human resource','labour market','job market','career',
-          'vacancy','recruit','gdp','economy','inflation','investment','tariff',
-          'trade','manufactur','factory','fdi','ringgit','bnm','bank negara'];
-
-        const POS = ['growth','hiring','record','rise','increase','strong','boost','gain',
-          'expand','invest','recovery','profit','improve','opportunity','job creation'];
-        const NEG = ['layoff','retrench','cut','decline','fall','drop','loss','risk',
-          'crisis','concern','unemployment rise','warn','freeze','reduce','recession',
-          'tariff','trade war','conflict','shortage','inflation surge','job cut'];
-
-        const getSentiment = (text: string): "positive"|"negative"|"neutral" => {
-          const lower = text.toLowerCase();
-          const pos = POS.filter(w => lower.includes(w)).length;
-          const neg = NEG.filter(w => lower.includes(w)).length;
-          return pos > neg ? "positive" : neg > pos ? "negative" : "neutral";
-        };
-
-        const categorise = (text: string): string => {
-          const t = text.toLowerCase();
-          if (t.match(/tariff|trade war|export|import|fdi|foreign invest|sanction/)) return "Trade & FDI";
-          if (t.match(/layoff|retrench|redundan|cut job|job loss/))                  return "Retrenchment";
-          if (t.match(/wage|salary|pay|minimum wage|epf|socso|bonus/))               return "Wages & Benefits";
-          if (t.match(/gdp|recession|economic growth|inflation|bank negara|bnm/))    return "Economy";
-          if (t.match(/budget|policy|government|ministry|minister|madani/))          return "Policy";
-          if (t.match(/tech|digital|ai |semiconductor|chip|startup|data centre/))    return "Tech & Digital";
-          if (t.match(/manufactur|factory|plant|production|ev |electric vehicle/))   return "Manufacturing";
-          if (t.match(/hire|recruit|job fair|talent|vacancy|fresh grad|graduate/))   return "Hiring";
-          if (t.match(/oil|energy|petrol|fuel|petronas|solar|renewable/))            return "Energy";
-          return "Business";
-        };
-
-        const shortSource = (name: string): string => {
-          const map: Record<string,string> = {
-            "new straits times":"NST","nst online":"NST",
-            "the star":"The Star","free malaysia today":"FMT",
-            "astro awani":"Awani","bernama":"Bernama",
-            "malay mail":"Malay Mail","the edge":"The Edge",
-            "malaysiakini":"Mkini","sun daily":"Sun Daily",
-            "the malaysian reserve":"TMR","reuters":"Reuters",
-            "bloomberg":"Bloomberg","channel newsasia":"CNA",
-          };
-          const lower = name.toLowerCase();
-          for (const [k,v] of Object.entries(map)) {
-            if (lower.includes(k)) return v;
-          }
-          return name.split(/[\s\-.]/)[0] || "News";
-        };
-
-        const rawItems = Array.from(xml.querySelectorAll("item")).slice(0, 12);
-
-        // Dynamic trending: find words appearing in 2+ titles
-        const wordFreq: Record<string,number> = {};
-        const stopWords = new Set(["the","a","an","in","on","at","to","for","of","and",
-          "or","but","is","are","was","were","has","have","had","be","by","as","with",
-          "from","its","this","that","says","said","will","can","may","more","also",
-          "over","after","new","one","two","malaysia","malaysian"]);
-
-        rawItems.forEach(el => {
-          const title = el.querySelector("title")?.textContent || "";
-          title.toLowerCase().replace(/[^a-z\s]/g," ").split(/\s+/)
-            .filter(w => w.length > 4 && !stopWords.has(w))
-            .forEach(w => { wordFreq[w] = (wordFreq[w] || 0) + 1; });
-        });
-
-        const trending = new Set(
-          Object.entries(wordFreq).filter(([,c]) => c >= 2).map(([w]) => w)
-        );
-
-        items = rawItems
-          .map(el => {
-            const rawTitle = el.querySelector("title")?.textContent || "";
-            const title    = rawTitle.replace(/ - [^-]+$/, "").trim();
-            const desc     = (el.querySelector("description")?.textContent || "")
-              .replace(/<[^>]*>/g,"").slice(0,200);
-            const url      = el.querySelector("link")?.textContent || "#";
-            const pubDate  = el.querySelector("pubDate")?.textContent || "";
-            const srcEl    = el.querySelector("source");
-            const source   = shortSource(srcEl?.textContent || rawTitle.split(" - ").pop() || "News");
-            const combined = `${title} ${desc}`;
-            const lower    = combined.toLowerCase();
-
-            const staticScore  = JOB_TERMS.filter(t => lower.includes(t)).length;
-            const trendScore   = [...trending].filter(t => lower.includes(t)).length;
-            const jobScore     = staticScore + trendScore;
-
-            return {
-              title, description: desc, url, pubDate, source,
-              sentiment: getSentiment(combined),
-              category:  categorise(combined),
-              jobScore,
-            };
-          })
-          .filter(a => a.title.length > 10)
-          .sort((a, b) => b.jobScore !== a.jobScore
-            ? b.jobScore - a.jobScore
-            : new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()
-          )
-          .slice(0, 8);
-
-      } else {
-        // On Netlify — use server-side proxy
-        const res  = await fetch("/.netlify/functions/newsdata-proxy");
-        const text = await res.text();
-        if (!res.ok) throw new Error(`${res.status}`);
-        const json = JSON.parse(text);
-        items = json.articles ?? [];
-      }
+      // Always fetch from the Netlify function
+      const res  = await fetch("/.netlify/functions/newsdata-proxy");
+      const text = await res.text();
+      
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      
+      const json = JSON.parse(text);
+      const items = json.articles ?? [];
 
       if (!items.length) throw new Error("empty");
       setArticles(items as Article[]);
       setLastUpdated(new Date().toLocaleTimeString("en-MY", { hour: "2-digit", minute: "2-digit", hour12: true }));
     } catch (e) {
-      console.error(e);
+      console.error("Failed to fetch news:", e);
       setError(true);
     } finally {
       setLoading(false);
@@ -281,7 +165,6 @@ const DataInsightCards = () => {
 
   return (
     <div className="space-y-3">
-
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -346,7 +229,6 @@ const DataInsightCards = () => {
       {/* Content */}
       <div className="overflow-hidden">
         <AnimatePresence mode="wait" custom={direction}>
-
           {loading && (
             <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -378,7 +260,6 @@ const DataInsightCards = () => {
               ))}
             </motion.div>
           )}
-
         </AnimatePresence>
       </div>
     </div>

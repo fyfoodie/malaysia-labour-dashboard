@@ -202,9 +202,9 @@ exports.handler = async () => {
         const staticScore = JOB_TERMS.filter(t => lower.includes(t)).length;
 
         return { ...a, staticScore };
-      })())
+      })());
       
-      // ── Dynamic trending topics ───────────────────────────────────────────
+    // ── Dynamic trending topics ───────────────────────────────────────────
     // Extract all meaningful words from ALL article titles
     // Words that appear in 2+ articles = currently trending → boost score
     const wordFreq = {};
@@ -236,7 +236,8 @@ exports.handler = async () => {
     });
     // ───────────────────────────────────────────────────────────────────── 
 
-      return scored
+    // FIX APPLIED HERE: Assign to finalArticles instead of returning directly
+    const finalArticles = scored
       .sort((a, b) => {
         if (b.jobScore !== a.jobScore) return b.jobScore - a.jobScore;
         const da = new Date(a.pubDate).getTime() || 0;
@@ -252,7 +253,7 @@ exports.handler = async () => {
         'Access-Control-Allow-Origin': '*',
         'Cache-Control': 'public, max-age=600', // 10 min cache
       },
-      body: JSON.stringify({ articles: processed }),
+      body: JSON.stringify({ articles: finalArticles }), // FIX APPLIED HERE: Pass the final array to the body
     };
   } catch (err) {
     return {
