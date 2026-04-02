@@ -140,17 +140,20 @@ RESPONSE RULES:
 The user is asking about Malaysia's labour market. Answer helpfully and accurately.`;
 
     try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            system_instruction: { parts: [{ text: systemPrompt }] },
-            contents: [
-              ...history,
-              { role: "user", parts: [{ text: question }] },
-            ],
+      const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+      const url = isLocal
+         ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`
+         : `/.netlify/functions/gemini-proxy`;
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents: [
+            ...history,
+            { role: "user", parts: [{ text: question }] },
+          ],
             tools: [{ google_search: {} }],
             generationConfig: {
               temperature: 0.7,
