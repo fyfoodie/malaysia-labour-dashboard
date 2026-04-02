@@ -13,7 +13,7 @@ interface GeoFeature {
   geometry: { type: string; coordinates: any[] };
 }
 
-// fetch DOSM GeoJSON — try direct first, corsproxy as fallback
+//DOSM GeoJSON — try direct first, corsproxy as fallback
 const GEO_URLS = [
   "/malaysia-states.geojson",
   `https://corsproxy.io/?${encodeURIComponent("https://raw.githubusercontent.com/dosm-malaysia/data-open/main/datasets/geodata/administrative_1_state.geojson")}`,
