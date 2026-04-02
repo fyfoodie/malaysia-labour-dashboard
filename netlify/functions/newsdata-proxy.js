@@ -4,12 +4,8 @@ const { parseStringPromise } = require('xml2js');
 // Smart Google News RSS feeds — using OR operators + when:7d to force recent news only
 // scoring=n sorts by date (newest first)
 const FEEDS = [
-  // Direct labour market news
-  `https://news.google.com/rss/search?q=Malaysia+jobs+OR+employment+OR+unemployment+OR+workforce+OR+hiring+OR+wages+OR+retrenchment+when:7d&hl=en-MY&gl=MY&ceid=MY:en&scoring=n`,
-  // Economy affecting jobs
-  `https://news.google.com/rss/search?q=Malaysia+economy+OR+GDP+OR+investment+OR+tariff+OR+"job market"+OR+"labour market"+when:7d&hl=en-MY&gl=MY&ceid=MY:en&scoring=n`,
-  // Policy affecting workers
-  `https://news.google.com/rss/search?q=Malaysia+EPF+OR+SOCSO+OR+"minimum wage"+OR+retrench+OR+layoff+OR+graduate+OR+talent+when:7d&hl=en-MY&gl=MY&ceid=MY:en&scoring=n`,
+  `https://news.google.com/rss/search?q=Malaysia+employment+OR+jobs+OR+wages+OR+workforce+OR+hiring+OR+retrenchment+OR+economy+OR+tariff+when%3A3d&hl=en-MY&gl=MY&ceid=MY:en`,
+  `https://news.google.com/rss/search?q=Malaysia+EPF+OR+SOCSO+OR+%22minimum+wage%22+OR+layoff+OR+graduate+OR+investment+OR+GDP+when%3A3d&hl=en-MY&gl=MY&ceid=MY:en`,
 ];
 
 const POS_WORDS = ['growth','hiring','record high','rise','increase','strong','boost','gain','expand',
@@ -112,7 +108,7 @@ function isRecent(pubDate) {
   if (!pubDate) return true; // keep if no date
   try {
     const age = Date.now() - new Date(pubDate).getTime();
-    return age < 30 * 24 * 60 * 60 * 1000; // 30 days
+    return age < 7 * 24 * 60 * 60 * 1000; // 7 days only
   } catch { return true; }
 }
 
