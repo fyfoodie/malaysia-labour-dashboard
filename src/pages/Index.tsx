@@ -16,6 +16,7 @@ import StoryMode from "@/components/dashboard/StoryMode";
 import { motion } from "framer-motion";
 import { TrendingUp, Lightbulb, MapPin, Briefcase, Globe, Users, Target } from "lucide-react";
 import AIAnalyst from "@/components/dashboard/AIAnalyst";
+import ForecastSection from "@/components/dashboard/ForecastSection";
 
 const Index = () => {
   const { isDark, toggle } = useTheme();
@@ -119,6 +120,16 @@ const Index = () => {
             <span className="text-sm text-muted-foreground">{t("section.trends")}</span>
           </div>
           <TrendCharts />
+        </section>
+
+        {/* Forecast */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-1.5 h-6 rounded-full bg-primary" />
+            <TrendingUp className="h-5 w-5 text-primary" />
+            <span className="text-sm text-muted-foreground">Where is the market heading?</span>
+          </div>
+          <ForecastSection />
         </section>
 
         <section id="section-sectors">

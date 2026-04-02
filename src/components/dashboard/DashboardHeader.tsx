@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import ThemeToggle from "./ThemeToggle";
 import LanguageToggle from "./LanguageToggle";
-import { BarChart3, TrendingUp, PieChart, Users, MapPin, Clock } from "lucide-react";
+import { BarChart3, TrendingUp, PieChart, Users, MapPin} from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLabourData } from "@/context/LabourDataContext";
 
@@ -62,19 +62,19 @@ const DashboardHeader = ({ isDark, toggleTheme, activeSection = "snapshot", onSe
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {latestDataMonth && (
-            <div className="hidden md:flex items-center gap-1.5 text-xs">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-              </span>
-              <span className="text-green-500 font-medium">Live · {latestDataMonth}</span>
+          <div className="hidden md:flex items-center gap-3">
+            {latestDataMonth && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-xs font-medium text-green-600 dark:text-green-400">
+                  Live · {latestDataMonth}
+                  </span>
+                </div>
+              )}
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {now.toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: true })}
+                </span>
             </div>
-          )}
-          <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground tabular-nums">
-            <Clock className="h-3.5 w-3.5" />
-            <span>{formatter.format(now)}</span>
-          </div>
           <LanguageToggle />
           <ThemeToggle isDark={isDark} toggle={toggleTheme} />
         </div>
