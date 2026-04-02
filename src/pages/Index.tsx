@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/context/LanguageContext";
+import { useLabourData } from "@/context/LabourDataContext";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import KPICards from "@/components/dashboard/KPICards";
 import TrendCharts from "@/components/dashboard/TrendCharts";
@@ -18,9 +19,18 @@ import { TrendingUp, Lightbulb, MapPin, Briefcase, Globe, Users, Target } from "
 import AIAnalyst from "@/components/dashboard/AIAnalyst";
 import ForecastSection from "@/components/dashboard/ForecastSection";
 
+import {
+  KPICardsSkeleton, LabourHealthSkeleton, DataInsightSkeleton,
+  TrendChartsSkeleton, ForecastSkeleton, SectorChartSkeleton,
+  UnderemploymentSkeleton, StateMapSkeleton, RegionalJobsSkeleton,
+  WagesSkeleton
+} from "@/components/dashboard/Skeletons";
+
+
 const Index = () => {
   const { isDark, toggle } = useTheme();
   const { t } = useLanguage();
+  const { loading } = useLabourData(); // ← move here
   const [activeSection, setActiveSection] = useState("snapshot");
 
   const handleSectionClick = useCallback((section: string) => {
@@ -93,7 +103,9 @@ const Index = () => {
           </div>
         </motion.div>
 
-        <section id="section-snapshot"><LabourHealthScore /></section>
+        <section id="section-snapshot">
+          {loading ? <LabourHealthSkeleton /> : <LabourHealthScore />}
+          </section>
 
         <section>
           <div className="flex items-center gap-2 mb-4">
@@ -101,7 +113,7 @@ const Index = () => {
             <Lightbulb className="h-5 w-5 text-primary" />
             <span className="text-sm text-muted-foreground">{t("section.insights")}</span>
           </div>
-          <DataInsightCards />
+          {loading ? <DataInsightSkeleton /> : <DataInsightCards />}
         </section>
 
         <section>
@@ -110,7 +122,7 @@ const Index = () => {
             <TrendingUp className="h-5 w-5 text-primary" />
             <span className="text-sm text-muted-foreground">{t("section.kpi")}</span>
           </div>
-          <KPICards />
+          {loading ? <KPICardsSkeleton /> : <KPICards />}
         </section>
 
         <section id="section-trends">
@@ -119,7 +131,7 @@ const Index = () => {
             <TrendingUp className="h-5 w-5 text-secondary" />
             <span className="text-sm text-muted-foreground">{t("section.trends")}</span>
           </div>
-          <TrendCharts />
+          {loading ? <TrendChartsSkeleton /> : <TrendCharts />}
         </section>
 
         {/* Forecast */}
@@ -129,7 +141,7 @@ const Index = () => {
             <TrendingUp className="h-5 w-5 text-primary" />
             <span className="text-sm text-muted-foreground">Where is the market heading?</span>
           </div>
-          <ForecastSection />
+          {loading ? <ForecastSkeleton /> : <ForecastSection />}
         </section>
 
         <section id="section-sectors">
@@ -138,7 +150,7 @@ const Index = () => {
             <Globe className="h-5 w-5 text-accent" />
             <span className="text-sm text-muted-foreground">{t("section.sectors")}</span>
           </div>
-          <SectorChart />
+          {loading ? <SectorChartSkeleton /> : <SectorChart />}
         </section>
 
         <section>
@@ -147,14 +159,7 @@ const Index = () => {
             <Briefcase className="h-5 w-5 text-secondary" />
             <span className="text-sm text-muted-foreground">{t("section.occupations")}</span>
           </div>
-          <InDemandChart />
-        </section>
-
-        <section>
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-1.5 h-6 rounded-full bg-primary" />
-            <Briefcase className="h-5 w-5 text-primary" />
-          </div>
+          {loading ? <WagesSkeleton /> : <InDemandChart />}
         </section>
 
         <section id="section-underemployment">
@@ -163,7 +168,7 @@ const Index = () => {
             <Users className="h-5 w-5 text-primary" />
             <span className="text-sm text-muted-foreground">{t("section.underemployment")}</span>
           </div>
-          <UnderemploymentCharts />
+          {loading ? <UnderemploymentSkeleton /> : <UnderemploymentCharts />}
         </section>
 
         <section id="section-states">
@@ -172,7 +177,7 @@ const Index = () => {
             <MapPin className="h-5 w-5 text-accent" />
             <span className="text-sm text-muted-foreground">{t("section.states")}</span>
           </div>
-          <StateMap />
+          {loading ? <StateMapSkeleton /> : <StateMap />}
         </section>
 
         <section>
@@ -181,7 +186,7 @@ const Index = () => {
             <MapPin className="h-5 w-5 text-secondary" />
             <span className="text-sm text-muted-foreground">{t("section.regional")}</span>
           </div>
-          <RegionalJobsMap />
+          {loading ? <RegionalJobsSkeleton /> : <RegionalJobsMap />}
         </section>
 
         <section>
