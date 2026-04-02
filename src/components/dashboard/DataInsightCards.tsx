@@ -118,14 +118,12 @@ const DataInsightCards = () => {
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState(false);
   const [direction, setDirection] = useState<"next" | "prev">("next");
-  const [lastUpdated, setLastUpdated] = useState("");
 
   const fetchNews = useCallback(async () => {
     setLoading(true);
     setError(false);
     setPage(0);
     try {
-      // Always fetch from the Netlify function
       const res  = await fetch("/.netlify/functions/newsdata-proxy");
       const text = await res.text();
       
@@ -136,7 +134,6 @@ const DataInsightCards = () => {
 
       if (!items.length) throw new Error("empty");
       setArticles(items as Article[]);
-      setLastUpdated(new Date().toLocaleTimeString("en-MY", { hour: "2-digit", minute: "2-digit", hour12: true }));
     } catch (e) {
       console.error("Failed to fetch news:", e);
       setError(true);
@@ -165,23 +162,23 @@ const DataInsightCards = () => {
 
   return (
     <div className="space-y-3">
-      {/* Header */}
+      {/* Header Wrapper: Keeps left and right side properly spaced */}
       <div className="flex items-center justify-between">
+        
+        {/* Left Side: Restored Icon and Bold Title */}
         <div className="flex items-center gap-2">
-          <Newspaper className="h-3.5 w-3.5 text-primary" />
-          <span className="text-xs font-semibold text-foreground">Market News</span>
-          {lastUpdated && (
-            <span className="text-[11px] text-muted-foreground">· {lastUpdated}</span>
-          )}
+          <Newspaper className="h-4 w-4 text-primary" />
+          <span className="text-sm font-bold text-foreground">Market News</span>
+          
           {articles.length > 0 && (
-            <span className="text-[11px] text-muted-foreground">
-              · {page === 0 ? `1–${Math.min(4, articles.length)}` : `5–${articles.length}`} of {articles.length}
+            <span className="text-[11px] text-muted-foreground ml-1">
+              · Showing {page === 0 ? `1–${Math.min(4, articles.length)}` : `5–${articles.length}`} of {articles.length}
             </span>
           )}
         </div>
 
+        {/* Right Side: Buttons */}
         <div className="flex items-center gap-2">
-          {/* Prev/Next buttons */}
           {hasBatch2 && (
             <div className="flex items-center gap-1">
               <button

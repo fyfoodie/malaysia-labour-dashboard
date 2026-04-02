@@ -82,7 +82,7 @@ function categorise(text) {
   if (t.match(/wage|salary|pay|minimum wage|epf|socso|bonus|remuneration/))                     return 'Wages & Benefits';
   if (t.match(/gdp|recession|economic growth|inflation|interest rate|bnm|bank negara/))         return 'Economy';
   if (t.match(/budget|policy|government|ministry|minister|parliament|madani/))                  return 'Policy';
-  if (t.match(/tech|digital|ai |semiconductor|chip|startup|it sector|data centre/))             return 'Tech & Digital';
+  if (t.match(/tech|digital|ai|chip|startup|it sector|data centre/))             return 'Tech & Digital';
   if (t.match(/manufactur|factory|industri|plant|production|ev |electric vehicle/))             return 'Manufacturing';
   if (t.match(/hire|recruit|job fair|talent|workforce expand|graduate|fresh grad/))             return 'Hiring';
   if (t.match(/oil|energy|petrol|fuel|petronas|lng|solar|renewable/))                           return 'Energy';
@@ -190,10 +190,10 @@ exports.handler = async () => {
           'work permit','expatriate','foreign worker','migrant worker','gig worker',
           'gig economy','freelance','contract worker','part time','full time','remote work',
           'manufactur','factory','plant closure','plant expansion','fdi','investment',
-          'semiconductor','data centre','electric vehicle','solar','renewable energy',
+          ,'data centre','electric vehicle','solar','renewable energy',
           'gdp growth','economic growth','recession','economic slowdown','inflation',
           'cost of living','interest rate','bank negara','bnm','budget','madani',
-          'ringgit','export','import','trade','trade war','supply chain',
+          'ringgit','export','import','trade','trade war',
           'employment act','industrial relations','trade union','strike',
           'miti','mida','talentcorp','productivity','mdec','automation','future of work',
         ];

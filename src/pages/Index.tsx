@@ -108,11 +108,6 @@ const Index = () => {
           </section>
 
         <section>
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-1.5 h-6 rounded-full bg-primary" />
-            <Lightbulb className="h-5 w-5 text-primary" />
-            <span className="text-sm text-muted-foreground">{t("section.insights")}</span>
-          </div>
           {loading ? <DataInsightSkeleton /> : <DataInsightCards />}
         </section>
 

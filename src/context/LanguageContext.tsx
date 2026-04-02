@@ -25,7 +25,7 @@ const translations: Record<string, Record<Lang, string>> = {
   "hero.desc": { en: "Employment trends, sector shifts, state disparities and skills mismatch — Malaysia's labour market, made clear.", bm: "Trend pekerjaan, perubahan sektor, jurang negeri dan ketidakpadanan kemahiran — pasaran buruh Malaysia, dijelaskan." },
 
   // Section headers
-  "section.insights": { en: "What the data is telling us", bm: "Apa yang data beritahu kita" },
+  "section.insights": { en: "Market News", bm: "Berita Pasaran" },
   "section.kpi": { en: "Key Labour Market Snapshot", bm: "Gambaran Utama Pasaran Buruh" },
   "section.trends": { en: "Is the job market improving or worsening?", bm: "Adakah pasaran kerja bertambah baik atau buruk?" },
   "section.sectors": { en: "Where are the job opportunities?", bm: "Di mana peluang pekerjaan?" },
