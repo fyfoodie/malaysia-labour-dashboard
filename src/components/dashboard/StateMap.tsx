@@ -13,31 +13,33 @@ interface GeoFeature {
   geometry: { type: string; coordinates: any[] };
 }
 
-//DOSM GeoJSON — try direct first, corsproxy as fallback
+// Try local geojson first, then DOSM GitHub via corsproxy
 const GEO_URLS = [
   "/malaysia-states.geojson",
-  `https://corsproxy.io/?${encodeURIComponent("https://raw.githubusercontent.com/dosm-malaysia/data-open/main/datasets/geodata/administrative_1_state.geojson")}`,
+  `https://corsproxy.io/?${encodeURIComponent(
+    "https://raw.githubusercontent.com/dosm-malaysia/data-open/main/datasets/geodata/administrative_1_state.geojson"
+  )}`,
 ];
 
-// Keys to try when reading the state name from GeoJSON properties
+// Keys to try when reading state name from GeoJSON properties
 const STATE_NAME_KEYS = ["state", "name", "NAME_1", "nm_state", "State", "Name", "shapeName"];
 
-// Normalise GeoJSON names → DOSM LFS names
+// Normalise GeoJSON names → DOSM LFS state names
 const STATE_NAME_MAP: Record<string, string> = {
-  "Wilayah Persekutuan Kuala Lumpur": "W.P. Kuala Lumpur",
-  "WP Kuala Lumpur":                  "W.P. Kuala Lumpur",
-  "Kuala Lumpur":                     "W.P. Kuala Lumpur",
-  "Federal Territory of Kuala Lumpur":"W.P. Kuala Lumpur",
-  "Wilayah Persekutuan Labuan":       "W.P. Labuan",
-  "WP Labuan":                        "W.P. Labuan",
-  "Labuan":                           "W.P. Labuan",
-  "Wilayah Persekutuan Putrajaya":    "W.P. Putrajaya",
-  "WP Putrajaya":                     "W.P. Putrajaya",
-  "Putrajaya":                        "W.P. Putrajaya",
-  "Penang":                           "Pulau Pinang",
-  "Pinang":                           "Pulau Pinang",
-  "Pulau Pinang":                     "Pulau Pinang",
-  "Negeri Sembilan":                  "Negeri Sembilan",
+  "Wilayah Persekutuan Kuala Lumpur":  "W.P. Kuala Lumpur",
+  "WP Kuala Lumpur":                   "W.P. Kuala Lumpur",
+  "Kuala Lumpur":                      "W.P. Kuala Lumpur",
+  "Federal Territory of Kuala Lumpur": "W.P. Kuala Lumpur",
+  "Wilayah Persekutuan Labuan":        "W.P. Labuan",
+  "WP Labuan":                         "W.P. Labuan",
+  "Labuan":                            "W.P. Labuan",
+  "Wilayah Persekutuan Putrajaya":     "W.P. Putrajaya",
+  "WP Putrajaya":                      "W.P. Putrajaya",
+  "Putrajaya":                         "W.P. Putrajaya",
+  "Penang":                            "Pulau Pinang",
+  "Pinang":                            "Pulau Pinang",
+  "Pulau Pinang":                      "Pulau Pinang",
+  "Negeri Sembilan":                   "Negeri Sembilan",
 };
 
 function extractStateName(properties: Record<string, any>): string {
@@ -89,16 +91,21 @@ const getStatePath = (geometry: GeoFeature["geometry"]): string => {
   return paths.join(" ");
 };
 
+// Format thousands to readable string e.g. 1234.5 → "1,234.5k"
+const fmtK = (val: number | undefined | null) =>
+  val != null ? `${val.toLocaleString()}k` : "—";
+
 const StateMap = () => {
   const { data, loading } = useLabourData();
   const { t } = useLanguage();
-  const [metric, setMetric] = useState<Metric>("u_rate");
-  const [geoData, setGeoData] = useState<GeoFeature[]>([]);
-  const [geoStatus, setGeoStatus] = useState<"loading" | "loaded" | "error">("loading");
-  const [hoveredState, setHoveredState] = useState<string | null>(null);
+  const [metric, setMetric]           = useState<Metric>("u_rate");
+  const [geoData, setGeoData]         = useState<GeoFeature[]>([]);
+  const [geoStatus, setGeoStatus]     = useState<"loading" | "loaded" | "error">("loading");
+  const [hoveredState, setHoveredState]   = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
+  // ── Export PNG ──────────────────────────────────────────────────────────────
   const handleExport = async () => {
     if (!cardRef.current) return;
     const canvas = await html2canvas(cardRef.current, { scale: 2, useCORS: true });
@@ -108,6 +115,7 @@ const StateMap = () => {
     link.click();
   };
 
+  // ── Load GeoJSON ────────────────────────────────────────────────────────────
   useEffect(() => {
     const tryFetch = async () => {
       for (const url of GEO_URLS) {
@@ -130,16 +138,29 @@ const StateMap = () => {
     tryFetch();
   }, []);
 
+  // ── Process state data ──────────────────────────────────────────────────────
+  // DOSM lfs_qtr_state fields:
+  //   lf           → Labour Force Size (thousands)
+  //   lf_employed  → Employed Persons (thousands)
+  //   lf_unemployed→ Unemployed Persons (thousands)
+  //   lf_outside   → Outside Labour Force (thousands)
+  //   u_rate       → Unemployment Rate (%)
+  //   p_rate       → Participation Rate (%)
   const sorted = useMemo(() =>
-    data?.state ? [...data.state].sort((a: any, b: any) => a.date.localeCompare(b.date)) : []
+    data?.state
+      ? [...data.state].sort((a: any, b: any) => a.date.localeCompare(b.date))
+      : []
   , [data]);
 
   const latestDate = sorted[sorted.length - 1]?.date;
-  const latestData = sorted.filter((d: any) => d.date === latestDate);
+
+  const latestData = useMemo(() =>
+    sorted.filter((d: any) => d.date === latestDate)
+  , [sorted, latestDate]);
 
   const findStateData = (stateName: string | undefined | null) => {
     if (!stateName) return null;
-    return latestData.find((s: any) => s.state === stateName);
+    return latestData.find((s: any) => s.state === stateName) ?? null;
   };
 
   const rankedData = useMemo(() =>
@@ -154,16 +175,27 @@ const StateMap = () => {
     ? findStateData(hoveredState)
     : null;
 
-  const metricLabel = metric === "u_rate" ? t("state.unemploymentRate") : t("state.participationRate");
-  const latestYear  = latestDate ? new Date(latestDate).getFullYear() : "";
-  const latestMonth = latestDate ? new Date(latestDate).toLocaleString("en-MY", { month: "long" }) : "";
+  // ── Derived labels ──────────────────────────────────────────────────────────
+  const metricLabel = metric === "u_rate" ? "Unemployment Rate" : "Participation Rate";
 
+  // Format latest date as "Q3 2025" style from YYYY-MM-DD
+  const latestQuarter = useMemo(() => {
+    if (!latestDate) return "";
+    const d = new Date(latestDate);
+    const q = Math.ceil((d.getMonth() + 1) / 3);
+    return `Q${q} ${d.getFullYear()}`;
+  }, [latestDate]);
+
+  // ── KPI aggregates ──────────────────────────────────────────────────────────
   const avgUnemployment = latestData.length
     ? (latestData.reduce((s: number, d: any) => s + (d.u_rate ?? 0), 0) / latestData.length).toFixed(1)
-    : "0";
+    : "—";
   const avgParticipation = latestData.length
     ? (latestData.reduce((s: number, d: any) => s + (d.p_rate ?? 0), 0) / latestData.length).toFixed(1)
-    : "0";
+    : "—";
+  const bestUnemployment = latestData.length
+    ? Math.min(...latestData.map((d: any) => d.u_rate ?? 99)).toFixed(1)
+    : "—";
 
   if (loading || !data?.state?.length) {
     return <div className="rounded-2xl bg-card border border-border p-5 h-[600px] animate-pulse" />;
@@ -177,51 +209,88 @@ const StateMap = () => {
       transition={{ delay: 0.6, duration: 0.5 }}
       className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden"
     >
-      {/* Header */}
+      {/* ── Header ── */}
       <div className="p-5 border-b border-border">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h2 className="text-xl font-bold text-foreground">{t("state.title")}</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">{latestMonth} {latestYear}</p>
+            <h2 className="text-xl font-bold text-foreground">State-Level Labour Market</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Latest data: {latestQuarter} — Compare unemployment and participation across Malaysia's 16 states
+            </p>
           </div>
           <div className="flex items-center gap-2">
-          <button
-            onClick={handleExport}
-            title={t("common.export")}
-            className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
-          >
-            <Download className="h-3.5 w-3.5" />
-          </button>
-          <div className="flex gap-2 p-1 rounded-full bg-muted border border-border">
-            {([
-              { key: "u_rate" as Metric, label: t("state.unemployment") },
-              { key: "p_rate" as Metric, label: t("state.participation") },
-            ]).map(m => (
-              <button key={m.key} onClick={() => setMetric(m.key)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  metric === m.key
-                    ? "bg-foreground text-background shadow-md"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}>
-                {m.label}
-              </button>
-            ))}
-          </div>
+            <button
+              onClick={handleExport}
+              title="Export as PNG"
+              className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
+            >
+              <Download className="h-3.5 w-3.5" />
+            </button>
+            <div className="flex gap-1 p-1 rounded-full bg-muted border border-border">
+              {([
+                { key: "u_rate" as Metric, label: "Unemployment" },
+                { key: "p_rate" as Metric, label: "Participation" },
+              ]).map(m => (
+                <button
+                  key={m.key}
+                  onClick={() => setMetric(m.key)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                    metric === m.key
+                      ? "bg-foreground text-background shadow-md"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* KPI strip */}
+        {/* ── KPI strip ── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
           {[
-            { label: t("state.avgUnemployment"), value: `${avgUnemployment}%`, icon: TrendingDown, color: "text-red-500",    bg: "bg-red-500/10"    },
-            { label: t("state.avgParticipation"), value: `${avgParticipation}%`, icon: TrendingUp, color: "text-green-500",  bg: "bg-green-500/10"  },
-            { label: t("state.bestUnemployment"), value: `${Math.min(...latestData.map((d: any) => d.u_rate ?? 99))}%`, icon: Briefcase, color: "text-blue-500", bg: "bg-blue-500/10" },
-            { label: t("state.statesTracked"),   value: `${latestData.length}`, icon: MapPin,      color: "text-purple-500", bg: "bg-purple-500/10" },
+            {
+              label: "Avg Unemployment",
+              value: `${avgUnemployment}%`,
+              icon:  TrendingDown,
+              color: "text-red-500",
+              bg:    "bg-red-500/10",
+              tip:   "Simple average of unemployment rates across all states",
+            },
+            {
+              label: "Avg Participation",
+              value: `${avgParticipation}%`,
+              icon:  TrendingUp,
+              color: "text-green-500",
+              bg:    "bg-green-500/10",
+              tip:   "Simple average of LFPR across all states",
+            },
+            {
+              label: "Lowest Unemployment",
+              value: `${bestUnemployment}%`,
+              icon:  Briefcase,
+              color: "text-blue-500",
+              bg:    "bg-blue-500/10",
+              tip:   "State with the lowest unemployment rate this quarter",
+            },
+            {
+              label: "States Tracked",
+              value: `${latestData.length}`,
+              icon:  MapPin,
+              color: "text-purple-500",
+              bg:    "bg-purple-500/10",
+              tip:   "Number of states and federal territories with data",
+            },
           ].map((kpi, i) => (
-            <motion.div key={kpi.label}
-              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            <motion.div
+              key={kpi.label}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * i }}
-              className={`rounded-xl ${kpi.bg} p-3 flex items-center gap-2`}>
+              className={`rounded-xl ${kpi.bg} p-3 flex items-center gap-2`}
+              title={kpi.tip}
+            >
               <kpi.icon className={`h-4 w-4 ${kpi.color} flex-shrink-0`} />
               <div>
                 <p className="text-xs text-muted-foreground">{kpi.label}</p>
@@ -232,11 +301,15 @@ const StateMap = () => {
         </div>
       </div>
 
-      {/* Map + Sidebar */}
+      {/* ── Map + Sidebar ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
+
+        {/* Map panel */}
         <div className="lg:col-span-2 p-5 relative">
-          <h3 className="text-sm font-semibold text-foreground mb-1">{metricLabel}</h3>
-          <p className="text-xs text-muted-foreground mb-3">{t("state.clickState")}</p>
+          <h3 className="text-sm font-semibold text-foreground mb-1">{metricLabel} by State</h3>
+          <p className="text-xs text-muted-foreground mb-3">
+            Click a state to pin its details · Hover to preview
+          </p>
 
           {geoStatus === "error" ? (
             <div className="h-[300px] flex flex-col items-center justify-center gap-3 text-center">
@@ -263,14 +336,16 @@ const StateMap = () => {
                   const isHovered  = hoveredState  === stateName;
                   const isSelected = selectedState === stateName;
                   return (
-                    <path key={i}
+                    <path
+                      key={i}
                       d={getStatePath(feature.geometry)}
                       fill={color}
                       stroke={isSelected ? "#1e293b" : "white"}
                       strokeWidth={isSelected ? 2.5 : isHovered ? 1.5 : 0.8}
                       opacity={
-                        selectedState && !isSelected ? 0.45 :
-                        hoveredState && !isHovered && !isSelected ? 0.6 : 1
+                        selectedState && !isSelected ? 0.45
+                        : hoveredState && !isHovered && !isSelected ? 0.6
+                        : 1
                       }
                       className="cursor-pointer transition-all duration-150"
                       style={{ filter: isSelected || isHovered ? "brightness(1.1)" : "none" }}
@@ -292,18 +367,20 @@ const StateMap = () => {
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      className="absolute top-3 right-3 bg-card border border-border rounded-xl p-3 shadow-xl text-sm z-10 min-w-[180px]"
+                      className="absolute top-3 right-3 bg-card border border-border rounded-xl p-3 shadow-xl text-sm z-10 min-w-[190px]"
                     >
                       <p className="font-bold text-foreground mb-2">{sd.state}</p>
                       <div className="space-y-1">
                         {[
-                          { label: t("state.unemployment"), value: `${sd.u_rate}%` },
-                          { label: t("state.participation"), value: `${sd.p_rate}%` },
-                          { label: t("state.labourForce"),  value: `${sd.lf?.toLocaleString()}k` },
+                          { label: "Unemployment Rate", value: `${sd.u_rate}%`       },
+                          { label: "Participation Rate", value: `${sd.p_rate}%`      },
+                          { label: "Labour Force",       value: fmtK(sd.lf)          },
+                          { label: "Employed",           value: fmtK(sd.lf_employed) },
+                          { label: "Unemployed",         value: fmtK(sd.lf_unemployed) },
                         ].map(r => (
                           <div key={r.label} className="flex justify-between gap-4">
                             <span className="text-muted-foreground text-xs">{r.label}</span>
-                            <span className="font-semibold text-foreground">{r.value}</span>
+                            <span className="font-semibold text-foreground text-xs">{r.value}</span>
                           </div>
                         ))}
                       </div>
@@ -314,64 +391,162 @@ const StateMap = () => {
 
               {/* Legend */}
               <div className="mt-3 flex items-center justify-center gap-1 flex-wrap">
-                <span className="text-xs text-muted-foreground mr-1">{t("state.low")}</span>
+                <span className="text-xs text-muted-foreground mr-1">
+                  {metric === "u_rate" ? "Low" : "Low"}
+                </span>
                 {["#22c55e", "#84cc16", "#eab308", "#f97316", "#ef4444"].map((c, i) => (
                   <div key={i} className="w-6 h-3 rounded-sm" style={{ backgroundColor: c }} />
                 ))}
-                <span className="text-xs text-muted-foreground ml-1">{t("state.high")}</span>
+                <span className="text-xs text-muted-foreground ml-1">
+                  {metric === "u_rate" ? "High" : "High"}
+                </span>
+              </div>
+
+              {/* Legend thresholds */}
+              <div className="mt-1 flex items-center justify-center gap-3 flex-wrap">
+                {metric === "u_rate" ? (
+                  <>
+                    {[
+                      { color: "#22c55e", label: "≤2.5%" },
+                      { color: "#84cc16", label: "2.5–3.0%" },
+                      { color: "#eab308", label: "3.0–3.5%" },
+                      { color: "#f97316", label: "3.5–4.5%" },
+                      { color: "#ef4444", label: ">4.5%" },
+                    ].map(l => (
+                      <div key={l.label} className="flex items-center gap-1">
+                        <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: l.color }} />
+                        <span className="text-[10px] text-muted-foreground">{l.label}</span>
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    {[
+                      { color: "#22c55e", label: "≥73%" },
+                      { color: "#84cc16", label: "70–73%" },
+                      { color: "#eab308", label: "67–70%" },
+                      { color: "#f97316", label: "64–67%" },
+                      { color: "#ef4444", label: "<64%" },
+                    ].map(l => (
+                      <div key={l.label} className="flex items-center gap-1">
+                        <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: l.color }} />
+                        <span className="text-[10px] text-muted-foreground">{l.label}</span>
+                      </div>
+                    ))}
+                  </>
+                )}
               </div>
             </div>
           )}
         </div>
 
-        {/* Sidebar */}
+        {/* ── Sidebar ── */}
         <div className="border-t lg:border-t-0 lg:border-l border-border p-5 flex flex-col">
           <AnimatePresence mode="wait">
+
+            {/* State detail panel */}
             {selectedState && activeState ? (
-              <motion.div key="detail"
-                initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+              <motion.div
+                key="detail"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
                 className="flex flex-col gap-3"
               >
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-foreground">{activeState.state}</h3>
-                  <button onClick={() => setSelectedState(null)}
-                    className="text-xs text-muted-foreground hover:text-foreground border border-border rounded-full px-2 py-0.5">
-                    ✕ {t("state.close")}
+                  <h3 className="text-base font-bold text-foreground">{activeState.state}</h3>
+                  <button
+                    onClick={() => setSelectedState(null)}
+                    className="text-xs text-muted-foreground hover:text-foreground border border-border rounded-full px-2 py-0.5"
+                  >
+                    ✕ Close
                   </button>
                 </div>
+
+                {/* Stats — using correct DOSM field names */}
                 {[
-                  { label: t("state.unemploymentRate"), value: `${activeState.u_rate}%`,             color: getColor(activeState.u_rate, "u_rate") },
-                  { label: t("state.participationRate"), value: `${activeState.p_rate}%`,             color: getColor(activeState.p_rate, "p_rate") },
-                  { label: t("state.labourForce"),       value: `${activeState.lf?.toLocaleString()}k`,      color: "#6366f1" },
-                  { label: t("state.employed"),           value: `${activeState.employed?.toLocaleString()}k`, color: "#22c55e" },
-                  { label: t("state.unemployed"),         value: `${activeState.unemployed?.toLocaleString()}k`, color: "#ef4444" },
+                  {
+                    label: "Unemployment Rate",
+                    value: `${activeState.u_rate ?? "—"}%`,
+                    color: getColor(activeState.u_rate, "u_rate"),
+                    tip:   "u_rate — ratio of unemployed to labour force",
+                  },
+                  {
+                    label: "Participation Rate",
+                    value: `${activeState.p_rate ?? "—"}%`,
+                    color: getColor(activeState.p_rate, "p_rate"),
+                    tip:   "p_rate — ratio of labour force to working-age population",
+                  },
+                  {
+                    label: "Labour Force Size",
+                    value: fmtK(activeState.lf),
+                    color: "#6366f1",
+                    tip:   "lf — total employed + unemployed persons (thousands)",
+                  },
+                  {
+                    label: "Employed Persons",
+                    value: fmtK(activeState.lf_employed),
+                    color: "#22c55e",
+                    tip:   "lf_employed — worked at least 1 hour for pay/profit (thousands)",
+                  },
+                  {
+                    label: "Unemployed Persons",
+                    value: fmtK(activeState.lf_unemployed),
+                    color: "#ef4444",
+                    tip:   "lf_unemployed — not working but actively seeking work (thousands)",
+                  },
+                  {
+                    label: "Outside Labour Force",
+                    value: fmtK(activeState.lf_outside),
+                    color: "#94a3b8",
+                    tip:   "lf_outside — housewives, students, early retired, disabled (thousands)",
+                  },
                 ].map(stat => (
-                  <div key={stat.label} className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border">
-                    <span className="text-sm text-muted-foreground">{stat.label}</span>
-                    <span className="text-sm font-bold" style={{ color: stat.color }}>{stat.value}</span>
+                  <div
+                    key={stat.label}
+                    title={stat.tip}
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-muted/40 border border-border"
+                  >
+                    <span className="text-xs text-muted-foreground">{stat.label}</span>
+                    <span className="text-xs font-bold" style={{ color: stat.color }}>{stat.value}</span>
                   </div>
                 ))}
-                <div className="mt-2">
-                  <p className="text-xs text-muted-foreground mb-1">{t("state.vsNational")} ({avgUnemployment}%)</p>
+
+                {/* Unemployment vs national avg bar */}
+                <div className="mt-1">
+                  <p className="text-xs text-muted-foreground mb-1">
+                    vs. national average ({avgUnemployment}%)
+                  </p>
                   <div className="h-3 rounded-full bg-muted overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-500"
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
                       style={{
                         width: `${Math.min((activeState.u_rate / 8) * 100, 100)}%`,
                         backgroundColor: getColor(activeState.u_rate, "u_rate"),
-                      }} />
+                      }}
+                    />
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground mt-1">
                     <span>0%</span><span>8%</span>
                   </div>
                 </div>
               </motion.div>
+
             ) : (
-              <motion.div key="rankings"
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              /* Rankings list */
+              <motion.div
+                key="rankings"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 className="flex flex-col gap-2"
               >
-                <h3 className="text-sm font-semibold text-foreground">{metricLabel} {t("state.rankings")}</h3>
-                <p className="text-xs text-muted-foreground mb-1">{t("state.clickForDetails")}</p>
+                <h3 className="text-sm font-semibold text-foreground">
+                  {metricLabel} Rankings
+                </h3>
+                <p className="text-xs text-muted-foreground mb-1">
+                  Click any state on the map to see full details
+                </p>
                 <div className="space-y-1.5 overflow-y-auto max-h-[420px] pr-1">
                   {rankedData.map((d: any, i: number) => {
                     const val    = d[metric] ?? 0;
@@ -381,8 +556,12 @@ const StateMap = () => {
                         <span className="text-xs text-muted-foreground w-5 text-right">{i + 1}</span>
                         <div className="flex-1">
                           <div className="flex justify-between mb-0.5">
-                            <span className="text-xs font-medium text-foreground truncate max-w-[120px]">{d.state}</span>
-                            <span className="text-xs font-bold" style={{ color: getColor(val, metric) }}>{val}%</span>
+                            <span className="text-xs font-medium text-foreground truncate max-w-[120px]">
+                              {d.state}
+                            </span>
+                            <span className="text-xs font-bold" style={{ color: getColor(val, metric) }}>
+                              {val}%
+                            </span>
                           </div>
                           <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                             <motion.div
@@ -404,16 +583,30 @@ const StateMap = () => {
         </div>
       </div>
 
-      <div className="px-5 pb-4">
-        <p className="text-xs text-muted-foreground">
-          Boundaries:{" "}
-          <a href="https://github.com/dosm-malaysia/data-open" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
-            DOSM Open Data
-          </a>{" · "}
-          <a href="https://open.dosm.gov.my/data-catalogue/lfs_qtr_state" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
-            DOSM LFS Quarterly by State
-          </a>
-        </p>
+      {/* ── Source footer ── */}
+      <div className="px-5 py-3 border-t border-border bg-muted/10 flex items-center justify-between flex-wrap gap-2">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-xs text-muted-foreground/70">
+            {"Source: "}
+            <a href="https://open.dosm.gov.my/data-catalogue/lfs_qtr_state" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">{"DOSM — Quarterly Principal Labour Force Statistics by State (lfs_qtr_state)"}</a>
+          </span>
+          <span className="text-xs text-muted-foreground/50">
+            {"Map boundaries: "}
+            <a href="https://github.com/dosm-malaysia/data-open" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">{"DOSM Open Data (dosm-malaysia/data-open)"}</a>
+          </span>
+        </div>
+        <div className="group relative flex items-center">
+          <div className="w-4 h-4 rounded-full border border-muted-foreground/40 flex items-center justify-center cursor-help text-muted-foreground/60 text-[10px] font-bold select-none">i</div>
+          <div className="absolute bottom-6 right-0 w-72 bg-card border border-border rounded-xl p-3 shadow-lg text-xs text-muted-foreground leading-relaxed opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 z-50 space-y-1">
+            <p className="font-semibold text-foreground mb-1">Field definitions (DOSM lfs_qtr_state)</p>
+            <p><strong>{"lf"}</strong>{" — Labour Force Size: total employed + unemployed (thousands)"}</p>
+            <p><strong>{"lf_employed"}</strong>{" — worked at least 1 hour for pay/profit (thousands)"}</p>
+            <p><strong>{"lf_unemployed"}</strong>{" — not working but actively seeking work (thousands)"}</p>
+            <p><strong>{"lf_outside"}</strong>{" — outside labour force: housewives, students, retired (thousands)"}</p>
+            <p><strong>{"u_rate"}</strong>{" — unemployment rate: lf_unemployed / lf × 100"}</p>
+            <p><strong>{"p_rate"}</strong>{" — participation rate: lf / working-age population × 100"}</p>
+          </div>
+        </div>
       </div>
     </motion.div>
   );
