@@ -1,52 +1,27 @@
 /**
  * netlify/functions/newsdata-proxy.cjs
  *
- * Architecture decision (researched):
- * ─────────────────────────────────────────────────────────────────────────────
- * BM25 runs SERVER-SIDE here (Node.js on Netlify), NOT in the browser.
+ * Bilingual BM25 news scoring.
+ * Accepts:  GET /.netlify/functions/newsdata-proxy?lang=en   (default)
+ *           GET /.netlify/functions/newsdata-proxy?lang=bm
  *
- * Why BM25 beats the old keyword-count approach:
- *   1. Term saturation — "jobs" appearing 10× doesn't make an article 10×
- *      more relevant. BM25's k1 parameter caps this non-linearly.
- *   2. Document length normalisation — a 50-word title snippet with "EPF"
- *      scores higher than a 300-word article that mentions it once in passing.
- *   3. IDF from real corpus — rare terms like "HRDC" score higher than common
- *      ones like "economy" because IDF is computed from the actual article pool.
- *   4. BM25F weighting — title gets 3× weight vs description (standard practice).
+ * EN: Google News (en-MY) + Bernama English
+ * BM: Google News (ms-MY) + Utusan Online + Harian Metro
  *
- * Why server-side (not browser):
- *   → No memory pressure on Safari (no 23MB ONNX model)
- *   → IDF computed from real article corpus, not fake pseudo-corpus
- *   → Cached on Netlify CDN for 10 min — fast for users
- *   → Single responsibility: browser just renders what server sends
- *
- * Pipeline:
- *   1. Fetch Google News RSS (2 targeted queries, last 3 days)
- *   2. Parse + deduplicate
- *   3. Build BM25 corpus from article titles+descriptions
- *   4. Score each article against 8 labour topic queries
- *   5. Assign best-matching topic + relevance gate
- *   6. Assign sentiment (positive/negative/neutral)
- *   7. Return top 12, sorted by relevance then recency
- * ─────────────────────────────────────────────────────────────────────────────
+ * BM25 runs server-side — no browser memory pressure.
+ * Results cached 10 min on Netlify CDN.
  */
 
 const fetch = require('node-fetch');
 const { parseStringPromise } = require('xml2js');
 
-// ── RSS feeds ─────────────────────────────────────────────────────────────────
-const FEEDS = [
-  `https://news.google.com/rss/search?q=Malaysia+employment+OR+jobs+OR+wages+OR+workforce+OR+hiring+OR+retrenchment+OR+EPF+OR+SOCSO+when%3A3d&hl=en-MY&gl=MY&ceid=MY:en`,
-  `https://news.google.com/rss/search?q=Malaysia+%22minimum+wage%22+OR+layoff+OR+graduate+OR+investment+OR+GDP+OR+HRDC+OR+%22foreign+worker%22+OR+%22gig+economy%22+when%3A3d&hl=en-MY&gl=MY&ceid=MY:en`,
-];
-
-// ── BM25 parameters (standard Elasticsearch defaults) ─────────────────────────
-const K1 = 1.5;   // term frequency saturation
-const B  = 0.75;  // document length normalisation
-const TITLE_BOOST = 3.0; // title terms weighted 3× (BM25F)
+// ── BM25 parameters ───────────────────────────────────────────────────────────
+const K1          = 1.5;
+const B           = 0.75;
+const TITLE_BOOST = 3.0; // BM25F: title terms weighted 3×
 
 // ── Stopwords ─────────────────────────────────────────────────────────────────
-const STOPWORDS = new Set([
+const STOPWORDS_EN = new Set([
   'a','an','the','and','or','but','in','on','at','to','for','of','with',
   'by','from','is','are','was','were','be','been','have','has','had',
   'do','does','did','will','would','could','should','may','might',
@@ -56,44 +31,48 @@ const STOPWORDS = new Set([
   'malaysia','malaysian','kuala','lumpur','putrajaya','report','data',
 ]);
 
-function tokenize(text) {
+const STOPWORDS_BM = new Set([
+  'yang','dan','di','ke','dari','pada','untuk','dengan','adalah','ini',
+  'itu','akan','telah','dalam','oleh','juga','bagi','atas','antara',
+  'tidak','boleh','atau','sudah','satu','ia','mereka','kami','kita',
+  'ada','lebih','lagi','sahaja','serta','bukan','bila','mana','masa',
+  'sebagai','seperti','selepas','sebelum','malaysia','malaysian',
+  'kuala','lumpur','putrajaya',
+]);
+
+function tokenize(text, lang = 'en') {
+  const stops = lang === 'bm' ? STOPWORDS_BM : STOPWORDS_EN;
   return text
     .toLowerCase()
-    .replace(/[^a-z0-9]/g, ' ')
+    .replace(/[^a-z0-9\u00C0-\u024F]/g, ' ') // keep accented chars for BM
     .split(/\s+/)
-    .filter(t => t.length > 2 && !STOPWORDS.has(t));
+    .filter(t => t.length > 2 && !stops.has(t));
 }
 
-// ── BM25 implementation ───────────────────────────────────────────────────────
+// ── BM25 ──────────────────────────────────────────────────────────────────────
 class BM25 {
   constructor(docs) {
-    this.docs = docs; // array of token arrays
-    this.N    = docs.length;
+    this.docs  = docs;
+    this.N     = docs.length;
     this.avgdl = docs.reduce((s, d) => s + d.length, 0) / (this.N || 1);
-
-    // Build IDF from real corpus
-    const df = new Map();
+    const df   = new Map();
     for (const doc of docs) {
-      const uniq = new Set(doc);
-      for (const t of uniq) df.set(t, (df.get(t) || 0) + 1);
+      for (const t of new Set(doc)) df.set(t, (df.get(t) || 0) + 1);
     }
     this.idf = new Map();
     for (const [term, freq] of df) {
-      // Robertson-Sparck Jones IDF (used in Elasticsearch)
       this.idf.set(term, Math.log(1 + (this.N - freq + 0.5) / (freq + 0.5)));
     }
   }
-
   score(docIdx, queryTokens) {
     const doc    = this.docs[docIdx];
     const docLen = doc.length;
     const tf     = new Map();
     for (const t of doc) tf.set(t, (tf.get(t) || 0) + 1);
-
     let score = 0;
     for (const term of queryTokens) {
-      const freq   = tf.get(term) || 0;
-      if (freq === 0) continue;
+      const freq = tf.get(term) || 0;
+      if (!freq) continue;
       const idf    = this.idf.get(term) || 0;
       const tfNorm = (freq * (K1 + 1)) / (freq + K1 * (1 - B + B * (docLen / this.avgdl)));
       score += idf * tfNorm;
@@ -103,93 +82,43 @@ class BM25 {
 }
 
 // ── Topic definitions ─────────────────────────────────────────────────────────
-// Written as realistic news search queries — BM25 scores articles against these
-const TOPIC_QUERIES = {
-  'Wages & Benefits': tokenize(`
-    salary wage minimum wage EPF SOCSO EIS dividend bonus pay rise income
-    compensation remuneration take-home payroll overtime allowance cost living
-    household income wage growth pay hike increment salary increase
-  `),
-  'Hiring & Jobs': tokenize(`
-    employment hiring recruitment job vacancy unemployment retrenchment
-    layoff fresh graduate job seeker job creation workforce headcount
-    job fair talent acquisition career internship job offer redundancy
-    job loss jobless job market labour market
-  `),
-  'Skills & Training': tokenize(`
-    upskill reskill training HRDC HRD Corp HRDF vocational TVET polytechnic
-    skills development digital skills certification human capital
-    apprenticeship capacity building workforce training employability
-    graduate employability skills mismatch talent gap
-  `),
-  'Labour Policy': tokenize(`
-    employment act labour law regulation human resources ministry
-    industrial court trade union worker rights social protection
-    work permit labour reform legislation amendment occupational safety
-    EPF SOCSO contribution rate policy worker protection
-  `),
-  'Gig Economy': tokenize(`
-    gig economy gig worker freelance platform worker delivery rider
-    Grab Foodpanda e-hailing self-employed contract worker
-    digital platform on-demand flexible work gig income protection
-    gig worker bill insurance coverage
-  `),
-  'Migrant Labour': tokenize(`
-    foreign worker migrant worker immigration levy undocumented illegal
-    work permit employment pass Bangladesh Indonesia Myanmar expatriate
-    skilled foreign talent recruitment agency overseas worker
-    migrant worker welfare enforcement quota
-  `),
-  'Industry & Trade': tokenize(`
-    manufacturing construction semiconductor electronics FDI investment
-    export import trade tariff factory industry output employment
-    industrial park job creation EV electric vehicle data centre
-    supply chain automation digital economy
-  `),
-  'Economy & Growth': tokenize(`
-    GDP economic growth unemployment rate labour force Bank Negara
-    DOSM statistics inflation ringgit interest rate productivity
-    budget fiscal employment data quarterly annual economic outlook
-    recession slowdown economic recovery jobs created
-  `),
+const TOPICS_EN = {
+  'Wages & Benefits':  { emoji: '💰', color: '#16a34a', query: `salary wage minimum wage EPF SOCSO EIS dividend bonus pay rise income compensation remuneration take-home payroll overtime allowance cost living household income wage growth pay hike increment` },
+  'Hiring & Jobs':     { emoji: '💼', color: '#2563eb', query: `employment hiring recruitment job vacancy unemployment retrenchment layoff fresh graduate job seeker job creation workforce headcount job fair talent acquisition career internship job offer redundancy job loss jobless` },
+  'Skills & Training': { emoji: '🎓', color: '#7c3aed', query: `upskill reskill training HRDC HRD Corp HRDF vocational TVET polytechnic skills development digital skills certification human capital apprenticeship capacity building workforce training employability graduate` },
+  'Labour Policy':     { emoji: '🏛️', color: '#dc2626', query: `employment act labour law regulation human resources ministry industrial court trade union worker rights social protection work permit labour reform legislation amendment occupational safety EPF SOCSO contribution rate` },
+  'Gig Economy':       { emoji: '🛵', color: '#0891b2', query: `gig economy gig worker freelance platform worker delivery rider Grab Foodpanda e-hailing self-employed contract worker digital platform on-demand flexible work gig income protection gig worker bill insurance` },
+  'Migrant Labour':    { emoji: '✈️', color: '#be185d', query: `foreign worker migrant worker immigration levy undocumented illegal work permit employment pass Bangladesh Indonesia Myanmar expatriate skilled foreign talent recruitment agency overseas worker` },
+  'Industry & Trade':  { emoji: '🏭', color: '#d97706', query: `manufacturing construction semiconductor electronics FDI investment export import trade tariff factory industry output employment industrial park job creation EV electric vehicle data centre supply chain automation` },
+  'Economy & Growth':  { emoji: '📈', color: '#65a30d', query: `GDP economic growth unemployment rate labour force Bank Negara DOSM statistics inflation ringgit interest rate productivity budget fiscal employment data quarterly annual economic outlook` },
 };
 
-const TOPIC_KEYS    = Object.keys(TOPIC_QUERIES);
-const TOPIC_DISPLAY = {
-  'Wages & Benefits': { emoji: '💰', color: '#16a34a' },
-  'Hiring & Jobs':    { emoji: '💼', color: '#2563eb' },
-  'Skills & Training':{ emoji: '🎓', color: '#7c3aed' },
-  'Labour Policy':    { emoji: '🏛️', color: '#dc2626' },
-  'Gig Economy':      { emoji: '🛵', color: '#0891b2' },
-  'Migrant Labour':   { emoji: '✈️', color: '#be185d' },
-  'Industry & Trade': { emoji: '🏭', color: '#d97706' },
-  'Economy & Growth': { emoji: '📈', color: '#65a30d' },
+const TOPICS_BM = {
+  'Gaji & Manfaat':     { emoji: '💰', color: '#16a34a', query: `gaji upah gaji minimum KWSP PERKESO EIS dividen bonus kenaikan gaji pendapatan pampasan saraan gaji pokok elaun lembur sara hidup pendapatan isi rumah pertumbuhan gaji` },
+  'Pekerjaan':          { emoji: '💼', color: '#2563eb', query: `pekerjaan pengambilan pekerja perekrutan kekosongan jawatan pengangguran penamatan pekerja graduan baru pencari kerja pewujudan pekerjaan tenaga kerja kerjaya latihan industri tawaran kerja` },
+  'Kemahiran & Latihan':{ emoji: '🎓', color: '#7c3aed', query: `kemahiran latihan HRDC HRD Corp HRDF teknikal TVET politeknik pembangunan kemahiran kemahiran digital pensijilan modal insan perantisan kebolehpasaran graduan` },
+  'Dasar Buruh':        { emoji: '🏛️', color: '#dc2626', query: `akta pekerjaan undang-undang buruh peraturan kementerian sumber manusia mahkamah perusahaan kesatuan sekerja hak pekerja perlindungan sosial permit kerja pembaharuan buruh` },
+  'Ekonomi Gig':        { emoji: '🛵', color: '#0891b2', query: `ekonomi gig pekerja gig bebas pekerja platform penghantaran pemandu Grab Foodpanda e-hailing bekerja sendiri pekerja kontrak platform digital kerja anjal pendapatan gig` },
+  'Pekerja Asing':      { emoji: '✈️', color: '#be185d', query: `pekerja asing pekerja migran imigresen levi tanpa dokumen permit kerja pas pekerjaan Bangladesh Indonesia Myanmar ekspatriat profesional asing agensi pengambilan pekerja luar negara` },
+  'Industri & Perdagangan':{ emoji: '🏭', color: '#d97706', query: `pembuatan pembinaan semikonduktor elektronik pelaburan langsung asing eksport import perdagangan tarif kilang industri output pekerjaan pelaburan luar negara kenderaan elektrik pusat data` },
+  'Ekonomi & Pertumbuhan':{ emoji: '📈', color: '#65a30d', query: `KDNK pertumbuhan ekonomi kadar pengangguran tenaga kerja Bank Negara DOSM statistik inflasi ringgit kadar faedah produktiviti bajet fiskal data pekerjaan suku tahunan tahunan` },
 };
 
-// ── Sentiment ─────────────────────────────────────────────────────────────────
-const POS_WORDS = [
-  'growth','hiring','record high','rise','increase','strong','boost','gain','expand',
-  'invest','recovery','surplus','improve','opportunity','create jobs','new jobs',
-  'thrive','positive','better','higher','job creation','workforce grow',
-  'wage increase','salary rise','minimum wage hike','upskill','reskill',
-];
-const NEG_WORDS = [
-  'layoff','retrench','cut','decline','fall','drop','weak','loss','risk',
-  'crisis','slow','concern','unemployment rise','contract','warn','deficit',
-  'reduce','close','shut','strike','recession','trade war','conflict',
-  'shortage','inflation surge','job cut','redundan','dismiss','freeze',
+// ── RSS Feeds by language ─────────────────────────────────────────────────────
+const FEEDS_EN = [
+  `https://news.google.com/rss/search?q=Malaysia+employment+OR+jobs+OR+wages+OR+workforce+OR+hiring+OR+retrenchment+OR+EPF+OR+SOCSO+when%3A3d&hl=en-MY&gl=MY&ceid=MY:en`,
+  `https://news.google.com/rss/search?q=Malaysia+%22minimum+wage%22+OR+layoff+OR+graduate+OR+investment+OR+GDP+OR+HRDC+OR+%22foreign+worker%22+OR+%22gig+economy%22+when%3A3d&hl=en-MY&gl=MY&ceid=MY:en`,
 ];
 
-function getSentiment(text) {
-  const lower = text.toLowerCase();
-  const pos = POS_WORDS.filter(w => lower.includes(w)).length;
-  const neg = NEG_WORDS.filter(w => lower.includes(w)).length;
-  if (pos > neg) return 'positive';
-  if (neg > pos) return 'negative';
-  return 'neutral';
-}
+const FEEDS_BM = [
+  // Google News in Malay — hl=ms&gl=MY&ceid=MY:ms
+  `https://news.google.com/rss/search?q=Malaysia+pekerjaan+OR+gaji+OR+pengangguran+OR+buruh+OR+KWSP+OR+pekerja+when%3A3d&hl=ms&gl=MY&ceid=MY:ms`,
+  `https://news.google.com/rss/search?q=Malaysia+%22gaji+minimum%22+OR+PERKESO+OR+graduan+OR+pelaburan+OR+KDNK+OR+%22pekerja+asing%22+when%3A3d&hl=ms&gl=MY&ceid=MY:ms`,
+  // Utusan Online — major BM outlet
+  `https://www.utusan.com.my/feed`,
+];
 
-// ── Source name normalisation ─────────────────────────────────────────────────
+// ── Source normalisation ──────────────────────────────────────────────────────
 const SOURCE_MAP = {
   'new straits times': 'NST', 'nst online': 'NST', 'nst.com': 'NST',
   'the star': 'The Star', 'star online': 'The Star',
@@ -204,7 +133,11 @@ const SOURCE_MAP = {
   'channel newsasia': 'CNA', 'channel news asia': 'CNA',
   'businesstoday': 'BizToday', 'business today': 'BizToday',
   'the malaysian insight': 'TMI',
-  'hr in asia': 'HR Asia',
+  'utusan malaysia': 'Utusan', 'utusan online': 'Utusan', 'utusan': 'Utusan',
+  'harian metro': 'H. Metro', 'harianmetro': 'H. Metro',
+  'berita harian': 'Berita Harian',
+  'sinar harian': 'Sinar Harian',
+  'astro utusan': 'Astro Utusan',
 };
 
 function shortSource(name) {
@@ -229,10 +162,14 @@ function extractSource(item) {
   } catch { return ''; }
 }
 
-function cleanTitle(raw) {
+function cleanTitle(raw, lang) {
   if (!raw) return '';
   const parts = raw.split(' - ');
-  if (parts.length > 1) parts.pop();
+  // For BM, source names often appear at end — strip if looks like a source
+  if (parts.length > 1) {
+    const last = parts[parts.length - 1].trim();
+    if (last.length < 40) parts.pop(); // likely a source name
+  }
   return parts.join(' - ').trim();
 }
 
@@ -243,10 +180,29 @@ function isRecent(pubDate) {
   } catch { return true; }
 }
 
+// ── Sentiment ─────────────────────────────────────────────────────────────────
+const POS_EN = ['growth','hiring','rise','increase','strong','boost','gain','expand','invest','recovery','improve','opportunity','create jobs','better'];
+const NEG_EN = ['layoff','retrench','cut','decline','fall','drop','weak','loss','crisis','slow','concern','unemployment rise','warn','recession','job cut'];
+const POS_BM = ['pertumbuhan','pengambilan','meningkat','kukuh','galakan','labur','pulih','peluang','lebih baik','pekerjaan baru'];
+const NEG_BM = ['penamatan','pengguruan','penurunan','jatuh','lemah','kerugian','krisis','lambat','bimbang','pengangguran meningkat','amaran','kemelesetan'];
+
+function getSentiment(text, lang) {
+  const lower = text.toLowerCase();
+  const pos   = (lang === 'bm' ? POS_BM : POS_EN).filter(w => lower.includes(w)).length;
+  const neg   = (lang === 'bm' ? NEG_BM : NEG_EN).filter(w => lower.includes(w)).length;
+  if (pos > neg) return 'positive';
+  if (neg > pos) return 'negative';
+  return 'neutral';
+}
+
 // ── Main handler ──────────────────────────────────────────────────────────────
-exports.handler = async () => {
+exports.handler = async (event) => {
+  const lang   = event.queryStringParameters?.lang === 'bm' ? 'bm' : 'en';
+  const FEEDS  = lang === 'bm' ? FEEDS_BM  : FEEDS_EN;
+  const TOPICS = lang === 'bm' ? TOPICS_BM : TOPICS_EN;
+
   try {
-    // 1. Fetch RSS feeds in parallel
+    // 1. Fetch RSS feeds
     const results = await Promise.allSettled(
       FEEDS.map(url =>
         fetch(url, {
@@ -259,108 +215,85 @@ exports.handler = async () => {
       )
     );
 
-    // 2. Parse and collect raw articles
-    const rawItems = [];
-    for (const result of results) {
-      if (result.status !== 'fulfilled') continue;
-      try {
-        const parsed = await parseStringPromise(result.value, { explicitArray: true, trim: true });
-        rawItems.push(...(parsed?.rss?.channel?.[0]?.item || []));
-      } catch { continue; }
-    }
-
-    if (!rawItems.length) {
-      return {
-        statusCode: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ articles: [] }),
-      };
-    }
-
-    // 3. Parse each item, deduplicate, filter recent
+    // 2. Parse + deduplicate
     const seen     = new Set();
     const articles = [];
 
-    for (const item of rawItems) {
-      const rawTitle = item.title?.[0] || '';
-      const title    = cleanTitle(rawTitle);
-      if (!title || title.length < 15) continue;
+    for (const result of results) {
+      if (result.status !== 'fulfilled') continue;
+      let parsed;
+      try {
+        parsed = await parseStringPromise(result.value, { explicitArray: true, trim: true });
+      } catch { continue; }
 
-      const url = item.link?.[0]
-        || (typeof item.guid?.[0] === 'string' ? item.guid[0] : item.guid?.[0]?._ || '#');
+      const items = parsed?.rss?.channel?.[0]?.item || [];
+      for (const item of items) {
+        const rawTitle = item.title?.[0] || '';
+        const title    = cleanTitle(rawTitle, lang);
+        if (!title || title.length < 10) continue;
 
-      if (seen.has(url) || seen.has(title)) continue;
-      if (!isRecent(item.pubDate?.[0])) continue;
+        const url = item.link?.[0]
+          || (typeof item.guid?.[0] === 'string' ? item.guid[0] : item.guid?.[0]?._ || '#');
 
-      seen.add(url);
-      seen.add(title);
+        if (seen.has(url) || seen.has(title)) continue;
+        if (!isRecent(item.pubDate?.[0])) continue;
 
-      const desc    = (item.description?.[0] || '').replace(/<[^>]*>/g, '').trim().slice(0, 300);
-      const source  = shortSource(extractSource(item));
-      const pubDate = item.pubDate?.[0] || '';
+        seen.add(url);
+        seen.add(title);
 
-      articles.push({ title, description: desc, url, pubDate, source });
+        const desc    = (item.description?.[0] || '').replace(/<[^>]*>/g, '').trim().slice(0, 300);
+        const source  = shortSource(extractSource(item));
+        const pubDate = item.pubDate?.[0] || '';
+
+        articles.push({ title, description: desc, url, pubDate, source });
+      }
     }
 
     if (!articles.length) {
       return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ articles: [] }),
+        body: JSON.stringify({ articles: [], lang }),
       };
     }
 
-    // 4. Build BM25 corpus from real articles
-    //    BM25F: title tokens repeated TITLE_BOOST times → higher weight
+    // 3. Build BM25 corpus (BM25F: title weighted 3×)
     const corpus = articles.map(a => [
-      ...Array(Math.round(TITLE_BOOST)).fill(null).flatMap(() => tokenize(a.title)),
-      ...tokenize(a.description),
+      ...Array(Math.round(TITLE_BOOST)).fill(null).flatMap(() => tokenize(a.title, lang)),
+      ...tokenize(a.description, lang),
     ]);
     const bm25 = new BM25(corpus);
 
-    // 5. Pre-tokenise all topic queries (done once)
+    // 4. Pre-tokenise topic queries
     const topicTokens = {};
-    for (const [topic, tokens] of Object.entries(TOPIC_QUERIES)) {
-      topicTokens[topic] = tokens;
+    for (const [topic, cfg] of Object.entries(TOPICS)) {
+      topicTokens[topic] = tokenize(cfg.query, lang);
     }
 
-    // 6. Score each article against all topics
-    const MIN_SCORE  = 1.2;  // must clear this to be considered relevant
-    const MIN_MARGIN = 0.15; // best topic must lead runner-up by at least this
-                              // (prevents flat distributions from matching anything)
+    // 5. Score each article
+    const MIN_SCORE  = 1.0;
+    const MIN_MARGIN = 0.12;
+    const topicKeys  = Object.keys(TOPICS);
 
     const scored = articles.map((a, i) => {
-      const scores = {};
       let bestTopic = null;
       let bestScore = 0;
       let secondScore = 0;
 
-      for (const topic of TOPIC_KEYS) {
+      for (const topic of topicKeys) {
         const s = bm25.score(i, topicTokens[topic]);
-        scores[topic] = s;
-        if (s > bestScore) {
-          secondScore = bestScore;
-          bestScore   = s;
-          bestTopic   = topic;
-        } else if (s > secondScore) {
-          secondScore = s;
-        }
+        if (s > bestScore) { secondScore = bestScore; bestScore = s; bestTopic = topic; }
+        else if (s > secondScore) secondScore = s;
       }
 
       const margin   = bestScore - secondScore;
       const relevant = bestScore >= MIN_SCORE && margin >= MIN_MARGIN;
 
-      return {
-        ...a,
-        topic:     relevant ? bestTopic : null,
-        bm25Score: bestScore,
-        margin,
-        relevant,
-      };
+      return { ...a, topic: relevant ? bestTopic : null, bm25Score: bestScore, relevant };
     });
 
-    // 7. Keep only relevant articles, assign sentiment + topic display
-    const relevant = scored
+    // 6. Filter, assign display fields, sort
+    const finalArticles = scored
       .filter(a => a.relevant)
       .map(a => ({
         title:       a.title,
@@ -368,22 +301,22 @@ exports.handler = async () => {
         url:         a.url,
         pubDate:     a.pubDate,
         source:      a.source,
-        sentiment:   getSentiment(`${a.title} ${a.description}`),
+        sentiment:   getSentiment(`${a.title} ${a.description}`, lang),
         topic:       a.topic,
-        topicEmoji:  TOPIC_DISPLAY[a.topic]?.emoji  ?? '📰',
-        topicColor:  TOPIC_DISPLAY[a.topic]?.color  ?? '#6b7280',
+        topicEmoji:  TOPICS[a.topic]?.emoji  ?? '📰',
+        topicColor:  TOPICS[a.topic]?.color  ?? '#6b7280',
         bm25Score:   Math.round(a.bm25Score * 100) / 100,
+        lang,
       }))
-      // Sort: by BM25 score first, then recency
       .sort((a, b) => {
         if (Math.abs(b.bm25Score - a.bm25Score) > 0.5) return b.bm25Score - a.bm25Score;
         return new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime();
       })
-      .slice(0, 12); // return top 12 — frontend paginates to 4 per page
+      .slice(0, 12);
 
     console.log(
-      `[newsdata-proxy] ${articles.length} articles → ${relevant.length} relevant after BM25`,
-      relevant.map(a => `[${a.topic}][${a.bm25Score}] ${a.title.slice(0, 45)}`)
+      `[newsdata-proxy][${lang}] ${articles.length} → ${finalArticles.length} relevant`,
+      finalArticles.map(a => `[${a.source}][${a.topic}][${a.bm25Score}] ${a.title.slice(0, 40)}`)
     );
 
     return {
@@ -391,9 +324,9 @@ exports.handler = async () => {
       headers: {
         'Content-Type':                'application/json',
         'Access-Control-Allow-Origin': '*',
-        'Cache-Control':               'public, max-age=600', // 10 min Netlify CDN cache
+        'Cache-Control':               'public, max-age=600',
       },
-      body: JSON.stringify({ articles: relevant }),
+      body: JSON.stringify({ articles: finalArticles, lang }),
     };
   } catch (err) {
     console.error('[newsdata-proxy] error:', err);
