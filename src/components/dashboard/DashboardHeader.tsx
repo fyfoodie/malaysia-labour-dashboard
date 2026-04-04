@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import ThemeToggle from "./ThemeToggle";
 import LanguageToggle from "./LanguageToggle";
-import { BarChart3, TrendingUp, PieChart, Users, MapPin} from "lucide-react";
+import { BarChart3, TrendingUp, PieChart, Users, MapPin } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useLabourData } from "@/context/LabourDataContext";
 
@@ -13,16 +13,26 @@ interface DashboardHeaderProps {
   onSectionClick?: (section: string) => void;
 }
 
-const DashboardHeader = ({ isDark, toggleTheme, activeSection = "snapshot", onSectionClick }: DashboardHeaderProps) => {
+const DashboardHeader = ({
+  isDark,
+  toggleTheme,
+  activeSection = "snapshot",
+  onSectionClick,
+}: DashboardHeaderProps) => {
   const { t } = useLanguage();
   const { data } = useLabourData();
   const [now, setNow] = useState(new Date());
 
   const latestDataMonth = useMemo(() => {
     if (!data?.national?.length) return null;
-    const latest = [...data.national].sort((a: any, b: any) => b.date.localeCompare(a.date))[0];
+    const latest = [...data.national].sort(
+      (a: any, b: any) => b.date.localeCompare(a.date)
+    )[0];
     if (!latest?.date) return null;
-    return new Date(latest.date).toLocaleString("en-MY", { month: "short", year: "numeric" });
+    return new Date(latest.date).toLocaleString("en-MY", {
+      month: "short",
+      year: "numeric",
+    });
   }, [data]);
 
   const navItems = [
@@ -38,68 +48,133 @@ const DashboardHeader = ({ isDark, toggleTheme, activeSection = "snapshot", onSe
     return () => clearInterval(timer);
   }, []);
 
-  const formatter = new Intl.DateTimeFormat("en-MY", {
-    timeZone: "Asia/Kuala_Lumpur",
-    weekday: "short", day: "numeric", month: "short", year: "numeric",
-    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true,
-  });
-
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="rounded-2xl bg-card/95 backdrop-blur-md border border-border shadow-sm overflow-hidden"
-    >
-      <div className="flex items-center justify-between px-4 md:px-6 py-3">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary/10">
-            <BarChart3 className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-sm font-bold text-foreground leading-tight">{t("header.title")}</h1>
-            <p className="text-xs text-muted-foreground">{t("header.subtitle")}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="hidden md:flex items-center gap-3">
-            {latestDataMonth && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-xs font-medium text-green-600 dark:text-green-400">
-                  Live · {latestDataMonth}
-                  </span>
-                </div>
-              )}
-              <span className="text-xs text-muted-foreground tabular-nums">
-                {now.toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: true })}
-                </span>
+    <>
+      {/*
+        ── Smooth theme transition injected once at root level.
+        All colour changes (bg, text, border) animate over 250ms instead
+        of snapping instantly. No JS involved — pure CSS.
+      ──────────────────────────────────────────────────────────── */}
+      <style>{`
+        *, *::before, *::after {
+          transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+          transition-duration: 250ms;
+          transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* Exceptions: things that should NOT fade (animations, transforms) */
+        [class*="animate-"],
+        [class*="motion"],
+        svg path,
+        .no-theme-transition,
+        .no-theme-transition * {
+          transition: none !important;
+        }
+      `}</style>
+
+      {/*
+        ── Full-width sticky header — flush to top, no card gap.
+        Design rationale:
+          • sticky top-0 z-50 — stays visible while scrolling
+          • No rounded corners on top — flush to browser edge feels professional
+          • Subtle bottom border + backdrop blur — separates from content
+            without a heavy shadow
+          • bg-card/95 + backdrop-blur — glass effect, content shows through
+            slightly as user scrolls — premium dashboard feel
+      ──────────────────────────────────────────────────────────── */}
+      <motion.header
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
+        className="sticky top-0 z-50 w-full bg-card/95 backdrop-blur-md border-b border-border/60"
+      >
+        {/* Top row: logo + meta + controls */}
+        <div className="flex items-center justify-between px-5 md:px-8 pt-3 pb-2">
+
+          {/* Left: logo + title */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 flex-shrink-0">
+              <BarChart3 className="h-4 w-4 text-primary" />
             </div>
-          <LanguageToggle />
-          <ThemeToggle isDark={isDark} toggle={toggleTheme} />
+            <div className="leading-tight">
+              <h1 className="text-sm font-bold text-foreground tracking-tight">
+                {t("header.title")}
+              </h1>
+              <p className="text-[11px] text-muted-foreground">
+                {t("header.subtitle")}
+              </p>
+            </div>
+          </div>
+
+          {/* Right: live badge + clock + controls */}
+          <div className="flex items-center gap-2.5">
+            {/* Live data badge */}
+            {latestDataMonth && (
+              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+                <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                  Live · {latestDataMonth}
+                </span>
+              </div>
+            )}
+
+            {/* Clock — hidden on very small screens */}
+            <span className="hidden md:block text-[11px] text-muted-foreground tabular-nums whitespace-nowrap">
+              {now.toLocaleString("en-MY", {
+                timeZone: "Asia/Kuala_Lumpur",
+                weekday: "short",
+                day:     "numeric",
+                month:   "short",
+                hour:    "2-digit",
+                minute:  "2-digit",
+                hour12:  true,
+              })}
+            </span>
+
+            {/* Divider */}
+            <div className="hidden md:block w-px h-4 bg-border/60" />
+
+            <LanguageToggle />
+            <ThemeToggle isDark={isDark} toggle={toggleTheme} />
+          </div>
         </div>
-      </div>
-      <div className="flex items-center gap-1 px-4 md:px-6 pb-3 overflow-x-auto">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeSection === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => onSectionClick?.(item.id)}
-              className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap md:px-3 md:text-sm md:gap-1.5 ${
-                isActive
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-              }`}
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {item.label}
-            </button>
-          );
-        })}
-      </div>
-    </motion.header>
+
+        {/* Bottom row: navigation tabs */}
+        <div className="flex items-center gap-0.5 px-5 md:px-8 pb-2 overflow-x-auto scrollbar-none">
+          {navItems.map((item) => {
+            const Icon    = item.icon;
+            const isActive = activeSection === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => onSectionClick?.(item.id)}
+                className={`
+                  relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg
+                  text-xs font-medium whitespace-nowrap
+                  transition-colors duration-150
+                  ${isActive
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                  }
+                `}
+              >
+                <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+                {item.label}
+
+                {/* Active indicator underline (subtle, only on active) */}
+                {isActive && (
+                  <motion.span
+                    layoutId="nav-active"
+                    className="absolute inset-0 rounded-lg bg-primary"
+                    style={{ zIndex: -1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </motion.header>
+    </>
   );
 };
 

@@ -1,100 +1,104 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    --background: 33 100% 96%;
-    --foreground: 0 0% 17%;
-
-    --card: 36 60% 96%;
-    --card-foreground: 0 0% 17%;
-
-    --popover: 33 100% 96%;
-    --popover-foreground: 0 0% 17%;
-
-    --primary: 36 90% 55%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 27 100% 50%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 33 40% 90%;
-    --muted-foreground: 0 0% 40%;
-
-    --accent: 36 100% 70%;
-    --accent-foreground: 0 0% 17%;
-
-    --destructive: 0 84% 60%;
+    /* ── Light mode — warm amber/cream ── */
+    --background:          33 100%  96%;   /* warm cream          */
+    --foreground:           0   0%  17%;   /* near-black          */
+    --card:                36  60%  96%;   /* slightly warm white */
+    --card-foreground:      0   0%  17%;
+    --popover:             33 100%  96%;
+    --popover-foreground:   0   0%  17%;
+    --primary:             36  90%  55%;   /* warm amber          */
+    --primary-foreground:   0   0% 100%;
+    --secondary:           27 100%  50%;   /* deep orange         */
+    --secondary-foreground: 0   0% 100%;
+    --muted:               33  40%  90%;
+    --muted-foreground:     0   0%  40%;
+    --accent:              36 100%  70%;
+    --accent-foreground:    0   0%  17%;
+    --destructive:          0  84%  60%;
     --destructive-foreground: 0 0% 100%;
+    --border:              33  30%  85%;
+    --input:               33  30%  85%;
+    --ring:                36  90%  55%;
+    --radius:              0.75rem;
 
-    --border: 33 30% 85%;
-    --input: 33 30% 85%;
-    --ring: 36 90% 55%;
+    /* Sidebar */
+    --sidebar-background:       33  60%  94%;
+    --sidebar-foreground:        0   0%  17%;
+    --sidebar-primary:          36  90%  55%;
+    --sidebar-primary-foreground: 0  0% 100%;
+    --sidebar-accent:           36 100%  70%;
+    --sidebar-accent-foreground: 0  0%  17%;
+    --sidebar-border:           33  30%  85%;
+    --sidebar-ring:             36  90%  55%;
 
-    --radius: 0.75rem;
-
-    --sidebar-background: 33 60% 94%;
-    --sidebar-foreground: 0 0% 17%;
-    --sidebar-primary: 36 90% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 36 100% 70%;
-    --sidebar-accent-foreground: 0 0% 17%;
-    --sidebar-border: 33 30% 85%;
-    --sidebar-ring: 36 90% 55%;
-
-    --chart-1: 36 90% 55%;
-    --chart-2: 27 100% 50%;
-    --chart-3: 45 100% 60%;
-    --chart-4: 15 80% 55%;
-    --chart-5: 50 80% 50%;
+    /* Charts — warm palette */
+    --chart-1: 36  90%  55%;
+    --chart-2: 27 100%  50%;
+    --chart-3: 45 100%  60%;
+    --chart-4: 15  80%  55%;
+    --chart-5: 50  80%  50%;
   }
 
   .dark {
-    --background: 300 100% 5%;
-    --foreground: 20 60% 92%;
+    /*
+     * Dark mode — warm stone/brown, NOT cold purple.
+     *
+     * Rationale:
+     *   Light mode is warm amber (#F5A623 ish). The old dark mode used
+     *   purple/magenta (hsl 270–300) which felt like a different app entirely.
+     *
+     *   New dark palette uses warm stone (hsl 30–35, low saturation) so the
+     *   amber primary feels at home. Think: dark wood, aged paper, warm night.
+     *
+     *   Key values:
+     *     background  → hsl(30, 8%, 10%)   warm near-black, slight brown
+     *     card        → hsl(30, 8%, 14%)   slightly lighter warm dark
+     *     primary     → hsl(36, 85%, 55%)  same amber as light mode ← brand consistency
+     *     muted       → hsl(30, 6%, 18%)   very subtle warm grey
+     */
 
-    --card: 270 40% 15%;
-    --card-foreground: 20 60% 92%;
+    --background:          30   8%  10%;   /* warm near-black         */
+    --foreground:          33  30%  90%;   /* warm off-white text     */
+    --card:                30   8%  14%;   /* warm dark card          */
+    --card-foreground:     33  30%  90%;
+    --popover:             30   8%  13%;
+    --popover-foreground:  33  30%  90%;
+    --primary:             36  85%  55%;   /* same amber as light ✓   */
+    --primary-foreground:   0   0%  10%;   /* dark text on amber      */
+    --secondary:           30   8%  20%;   /* warm dark secondary     */
+    --secondary-foreground:33  30%  90%;
+    --muted:               30   6%  18%;   /* warm muted bg           */
+    --muted-foreground:    33  15%  58%;   /* warm mid-grey text      */
+    --accent:              36  70%  48%;   /* slightly darker amber   */
+    --accent-foreground:    0   0%  10%;
+    --destructive:          0  65%  45%;
+    --destructive-foreground: 0 0% 98%;
+    --border:              30   8%  20%;   /* warm dark border        */
+    --input:               30   8%  20%;
+    --ring:                36  85%  55%;   /* amber focus ring        */
 
-    --popover: 270 40% 15%;
-    --popover-foreground: 20 60% 92%;
+    /* Sidebar — slightly deeper than background */
+    --sidebar-background:        30   8%   8%;
+    --sidebar-foreground:        33  30%  90%;
+    --sidebar-primary:           36  85%  55%;
+    --sidebar-primary-foreground: 0   0%  10%;
+    --sidebar-accent:            30   8%  18%;
+    --sidebar-accent-foreground: 33  30%  90%;
+    --sidebar-border:            30   8%  18%;
+    --sidebar-ring:              36  85%  55%;
 
-    --primary: 330 25% 42%;
-    --primary-foreground: 20 60% 92%;
-
-    --secondary: 270 30% 25%;
-    --secondary-foreground: 20 60% 92%;
-
-    --muted: 270 25% 20%;
-    --muted-foreground: 10 30% 75%;
-
-    --accent: 330 25% 42%;
-    --accent-foreground: 20 60% 92%;
-
-    --destructive: 0 62% 40%;
-    --destructive-foreground: 20 60% 92%;
-
-    --border: 270 20% 22%;
-    --input: 270 20% 22%;
-    --ring: 330 25% 42%;
-
-    --sidebar-background: 300 80% 7%;
-    --sidebar-foreground: 20 60% 92%;
-    --sidebar-primary: 330 25% 42%;
-    --sidebar-primary-foreground: 20 60% 92%;
-    --sidebar-accent: 270 30% 25%;
-    --sidebar-accent-foreground: 20 60% 92%;
-    --sidebar-border: 270 20% 22%;
-    --sidebar-ring: 330 25% 42%;
-
-    --chart-1: 330 35% 55%;
-    --chart-2: 10 40% 78%;
-    --chart-3: 20 60% 92%;
-    --chart-4: 330 20% 60%;
-    --chart-5: 270 25% 50%;
+    /* Charts — warm palette for dark, readable on dark bg */
+    --chart-1: 36  85%  58%;   /* amber        */
+    --chart-2: 27  90%  55%;   /* orange       */
+    --chart-3: 45  90%  62%;   /* golden       */
+    --chart-4: 15  75%  58%;   /* terracotta   */
+    --chart-5: 50  75%  55%;   /* warm yellow  */
   }
 }
 
@@ -102,23 +106,63 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground font-sans;
     font-family: 'Plus Jakarta Sans', 'DM Sans', sans-serif;
-    transition: background-color 0.3s ease, color 0.3s ease;
     opacity: 0;
-    animation: fadeIn 0.5s ease-out 0.05s forwards;
+    animation: fadeIn 0.4s ease-out 0.05s forwards;
   }
+
   @keyframes fadeIn {
     to { opacity: 1; }
   }
+
   html {
     scroll-behavior: smooth;
   }
-  html.theme-transitioning,
-  html.theme-transitioning *,
-  html.theme-transitioning *::before,
-  html.theme-transitioning *::after {
-    transition: background-color 0.3s ease, color 0.2s ease, border-color 0.3s ease !important;
-  }
+}
+
+/*
+ * ── Smooth theme transition ──────────────────────────────────────────────────
+ *
+ * Applies when the `dark` class is toggled on <html>.
+ * Only transitions colour properties — NOT transforms, opacity, or layout —
+ * so existing Framer Motion animations are unaffected.
+ *
+ * 300ms is the sweet spot: fast enough to feel snappy, slow enough to see
+ * the colour change rather than a jarring snap.
+ */
+html {
+  transition:
+    background-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    color            200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow, opacity;
+  transition-duration: 280ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/*
+ * Opt-out classes — things that must NOT slow-fade:
+ *   • Framer Motion / animation elements
+ *   • SVG paths inside charts (Recharts redraws these frequently)
+ *   • Skeleton pulse animations
+ *   • Spinners
+ */
+[data-framer-motion],
+.motion-safe\:animate-none,
+[class*="animate-"],
+.recharts-surface path,
+.recharts-surface line,
+.recharts-surface rect,
+.recharts-layer,
+canvas,
+.no-transition,
+.no-transition * {
+  transition: none !important;
 }

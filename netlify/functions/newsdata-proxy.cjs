@@ -111,11 +111,11 @@ const FEEDS_EN = [
 ];
 
 const FEEDS_BM = [
-  // Google News in Malay — hl=ms&gl=MY&ceid=MY:ms
+  // Google News Malay — most reliable server-side, returns BM articles from MY outlets
   `https://news.google.com/rss/search?q=Malaysia+pekerjaan+OR+gaji+OR+pengangguran+OR+buruh+OR+KWSP+OR+pekerja+when%3A3d&hl=ms&gl=MY&ceid=MY:ms`,
-  `https://news.google.com/rss/search?q=Malaysia+%22gaji+minimum%22+OR+PERKESO+OR+graduan+OR+pelaburan+OR+KDNK+OR+%22pekerja+asing%22+when%3A3d&hl=ms&gl=MY&ceid=MY:ms`,
-  // Utusan Online — major BM outlet
-  `https://www.utusan.com.my/feed`,
+  `https://news.google.com/rss/search?q=Malaysia+%22gaji+minimum%22+OR+PERKESO+OR+graduan+OR+pelaburan+OR+KDNK+OR+%22pekerja+asing%22+OR+%22ekonomi+gig%22+when%3A3d&hl=ms&gl=MY&ceid=MY:ms`,
+  // Berita Harian — official BM business/economy feed, reliable server-side
+  `https://www.bharian.com.my/rss/ekonomi`,
 ];
 
 // ── Source normalisation ──────────────────────────────────────────────────────
@@ -138,6 +138,10 @@ const SOURCE_MAP = {
   'berita harian': 'Berita Harian',
   'sinar harian': 'Sinar Harian',
   'astro utusan': 'Astro Utusan',
+  'berita harian': 'Berita Harian', 'bharian': 'Berita Harian',
+  'scoop': 'Scoop', 'scoop.my': 'Scoop',
+  'aliran': 'Aliran',
+  'world': 'World',
 };
 
 function shortSource(name) {
@@ -151,13 +155,26 @@ function shortSource(name) {
 
 function extractSource(item) {
   try {
+    // Method 1: <source> tag (most reliable)
     if (item.source?.[0]) {
       const s = item.source[0];
-      return typeof s === 'string' ? s : (s._ || s.$?.URL || '');
+      const name = typeof s === 'string' ? s : (s._ || '');
+      if (name && name.length > 1 && name.toLowerCase() !== 'news') return name;
     }
+    // Method 2: source URL attribute
+    if (item.source?.[0]?.$?.URL) {
+      const url = item.source[0].$.URL;
+      const domain = url.replace(/https?:\/\//, '').split('/')[0].replace(/^www\./, '');
+      return domain;
+    }
+    // Method 3: last segment of title after " - " (Google News puts outlet there)
     const title = item.title?.[0] || '';
     const parts = title.split(' - ');
-    if (parts.length > 1) return parts[parts.length - 1].trim();
+    if (parts.length > 1) {
+      const last = parts[parts.length - 1].trim();
+      // Only use if it looks like a short outlet name (not a subtitle)
+      if (last.length > 0 && last.length < 35 && !last.includes(' OR ')) return last;
+    }
     return '';
   } catch { return ''; }
 }
@@ -205,10 +222,14 @@ exports.handler = async (event) => {
     // 1. Fetch RSS feeds
     const results = await Promise.allSettled(
       FEEDS.map(url =>
-        fetch(url, {
-          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; FindMiJob/1.0)' },
-          timeout: 8000,
-        }).then(r => {
+        (() => {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 8000);
+          return fetch(url, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; FindMiJob/1.0)' },
+            signal: controller.signal,
+          }).finally(() => clearTimeout(timer));
+        })().then(r => {
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           return r.text();
         })
@@ -241,7 +262,18 @@ exports.handler = async (event) => {
         seen.add(url);
         seen.add(title);
 
-        const desc    = (item.description?.[0] || '').replace(/<[^>]*>/g, '').trim().slice(0, 300);
+        const rawDesc = (item.description?.[0] || '');
+        const desc = rawDesc
+          .replace(/<[^>]*>/g, '')           // strip HTML tags
+          .replace(/&nbsp;/gi, ' ')           // html entities
+          .replace(/&amp;/gi, '&')
+          .replace(/&lt;/gi, '<')
+          .replace(/&gt;/gi, '>')
+          .replace(/&quot;/gi, '"')
+          .replace(/&#[0-9]+;/g, ' ')        // numeric entities
+          .replace(/\s+/g, ' ')             // collapse whitespace
+          .trim()
+          .slice(0, 280);
         const source  = shortSource(extractSource(item));
         const pubDate = item.pubDate?.[0] || '';
 
