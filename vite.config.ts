@@ -7,10 +7,16 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
-    strictPort: true, // ADD THIS LINE
+    strictPort: true,
     hmr: {
       overlay: false,
     },
+    // ── Transformers.js requirements ──────────────────────────────────────────
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "credentialless",
+    },
+    // ──────────────────────────────────────────────────────────────────────────
     proxy: {
       "/api-dosm": {
         target: "https://api.data.gov.my",
@@ -29,5 +35,16 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  
+  // ── Transformers.js requirements ──────────────────────────────────────────
+  optimizeDeps: {
+    exclude: ["@huggingface/transformers"],
+  },
+  worker: {
+    format: "es",
+  },
+  build: {
+    target: "esnext",
   },
 }));
