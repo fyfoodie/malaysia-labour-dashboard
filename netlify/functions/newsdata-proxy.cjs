@@ -138,7 +138,7 @@ const SOURCE_MAP = {
   'berita harian': 'Berita Harian',
   'sinar harian': 'Sinar Harian',
   'astro utusan': 'Astro Utusan',
-  'berita harian': 'Berita Harian', 'bharian': 'Berita Harian',
+
   'scoop': 'Scoop', 'scoop.my': 'Scoop',
   'aliran': 'Aliran',
   'world': 'World',
