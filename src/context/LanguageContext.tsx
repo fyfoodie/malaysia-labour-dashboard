@@ -22,7 +22,7 @@ const translations: Record<string, Record<Lang, string>> = {
   "hero.badge": { en: "Official DOSM Data · Updated Monthly", bm: "Data Rasmi DOSM · Dikemaskini Bulanan" },
   "hero.title1": { en: "Malaysia's Jobs.", bm: "Pekerjaan Malaysia." },
   "hero.title2": { en: "By the Numbers.", bm: "Dalam Angka." },
-  "hero.desc": { en: "Employment trends, sector shifts, state disparities and skills mismatch — Malaysia's labour market, made clear.", bm: "Trend pekerjaan, perubahan sektor, jurang negeri dan ketidakpadanan kemahiran — pasaran buruh Malaysia, dijelaskan." },
+  "hero.desc": { en: "Sector shifts, state comparisons and skills insights. Malaysia's labour market, decoded for everyone.", bm: "Perubahan sektor, perbandingan negeri dan pandangan kemahiran. Pasaran buruh Malaysia, dijelaskan untuk semua." },
 
   // ── News Section ──────────────────────────────────────────────────────────
   "news.title":    { en: "Labour Market Pulse",          bm: "Denyutan Pasaran Buruh"        },
@@ -38,8 +38,8 @@ const translations: Record<string, Record<Lang, string>> = {
                      bm: "Semua penilaian berlaku di pelayan Netlify. Tiada muat turun ML, tiada tekanan memori." },
   "news.howFooter":{ en: "Topics: Wages, Hiring, Skills, Policy, Gig, Migrant Labour, Industry, Economy.",
                      bm: "Topik: Gaji, Pekerjaan, Kemahiran, Dasar, Gig, Pekerja Asing, Industri, Ekonomi." },
-  "news.footer":   { en: "BM25 scored server-side · cached 10 min",
-                     bm: "BM25 dinilai di pelayan · cache 10 min"         },
+  "news.footer":   { en: "BM25 scored server-side · Google News MY · past 3 days · cached 10 min",
+                     bm: "BM25 dinilai di pelayan · Google News MY · 3 hari lepas · cache 10 min"         },
   "news.howLink":  { en: "How this works",               bm: "Cara ini berfungsi"            },
   "news.empty":    { en: "No relevant labour market news right now.", bm: "Tiada berita pasaran buruh yang relevan sekarang." },
   "news.retry":    { en: "Refresh",                      bm: "Muat Semula"                   },
@@ -273,7 +273,7 @@ const translations: Record<string, Record<Lang, string>> = {
   "ai.welcome": { en: "Hi! I'm your Malaysia Labour Market AI Analyst. I have access to live DOSM data and can search current news to answer your questions. Ask me anything — about employment trends, sectors, states, or Malaysia's economy.", bm: "Hi! Saya Penganalisis AI Pasaran Buruh Malaysia anda. Saya mempunyai akses kepada data DOSM langsung dan boleh mencari berita terkini untuk menjawab soalan anda. Tanya apa sahaja — tentang trend pekerjaan, sektor, negeri, atau ekonomi Malaysia." },
   "ai.suggested": { en: "Suggested questions:", bm: "Soalan dicadangkan:" },
   "ai.placeholder": { en: "Ask anything about Malaysia's job market...", bm: "Tanya apa sahaja tentang pasaran kerja Malaysia..." },
-  "ai.powered": { en: "Powered by Gemini 2.0 Flash · Live DOSM data · Web search enabled", bm: "Dikuasakan oleh Gemini 2.0 Flash · Data DOSM langsung · Carian web diaktifkan" },
+  "ai.powered": { en: "Powered by Gemini 2.5 ", bm: "Dikuasakan oleh Gemini 2.5" },
   "ai.analysing": { en: "Analysing data + searching web...", bm: "Menganalisis data + mencari web..." },
   "ai.sources": { en: "Sources:", bm: "Sumber:" },
 
