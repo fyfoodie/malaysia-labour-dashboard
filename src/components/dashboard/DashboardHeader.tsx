@@ -49,54 +49,22 @@ const DashboardHeader = ({
   }, []);
 
   return (
-    <>
-      {/*
-        ── Smooth theme transition injected once at root level.
-        All colour changes (bg, text, border) animate over 250ms instead
-        of snapping instantly. No JS involved — pure CSS.
-      ──────────────────────────────────────────────────────────── */}
-      <style>{`
-        *, *::before, *::after {
-          transition-property: background-color, border-color, color, fill, stroke, box-shadow;
-          transition-duration: 250ms;
-          transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        /* Exceptions: things that should NOT fade (animations, transforms) */
-        [class*="animate-"],
-        [class*="motion"],
-        svg path,
-        .no-theme-transition,
-        .no-theme-transition * {
-          transition: none !important;
-        }
-      `}</style>
-
-      {/*
-        ── Full-width sticky header — flush to top, no card gap.
-        Design rationale:
-          • sticky top-0 z-50 — stays visible while scrolling
-          • No rounded corners on top — flush to browser edge feels professional
-          • Subtle bottom border + backdrop blur — separates from content
-            without a heavy shadow
-          • bg-card/95 + backdrop-blur — glass effect, content shows through
-            slightly as user scrolls — premium dashboard feel
-      ──────────────────────────────────────────────────────────── */}
       <motion.header
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
-        className="sticky top-0 z-50 w-full bg-card/95 backdrop-blur-md border-b border-border/60"
+        className="sticky top-0 z-50 w-full bg-card/98 backdrop-blur-md border-b border-border shadow-sm"
       >
         {/* Top row: logo + meta + controls */}
         <div className="flex items-center justify-between px-5 md:px-8 pt-3 pb-2">
 
           {/* Left: logo + title */}
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 flex-shrink-0">
-              <BarChart3 className="h-4 w-4 text-primary" />
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary/15 flex-shrink-0">
+              <BarChart3 className="h-4.5 w-4.5 text-primary" />
             </div>
             <div className="leading-tight">
-              <h1 className="text-sm font-bold text-foreground tracking-tight">
+              <h1 className="text-sm font-extrabold text-foreground tracking-tight">
                 {t("header.title")}
               </h1>
               <p className="text-[11px] text-muted-foreground">
@@ -139,7 +107,7 @@ const DashboardHeader = ({
         </div>
 
         {/* Bottom row: navigation tabs */}
-        <div className="flex items-center gap-0.5 px-5 md:px-8 pb-2 overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-1 px-5 md:px-8 pb-2.5 overflow-x-auto scrollbar-none">
           {navItems.map((item) => {
             const Icon    = item.icon;
             const isActive = activeSection === item.id;
@@ -174,7 +142,6 @@ const DashboardHeader = ({
           })}
         </div>
       </motion.header>
-    </>
   );
 };
 
