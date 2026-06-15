@@ -5,7 +5,7 @@
 
 @layer base {
   :root {
-    /* ── Light mode — warm amber/cream ── */
+    /* ── Light mode — warm amber/cream ─   ─ */
     --background:          33 100%  96%;   /* warm cream          */
     --foreground:           0   0%  17%;   /* near-black          */
     --card:                36  60%  96%;   /* slightly warm white */

@@ -10,7 +10,7 @@ import InDemandChart from "@/components/dashboard/InDemandChart";
 import UnderemploymentCharts from "@/components/dashboard/UnderemploymentCharts";
 import StateMap from "@/components/dashboard/StateMap";
 import RegionalJobsMap from "@/components/dashboard/RegionalJobsMap";
-import DataInsightCards from "@/components/dashboard/DataInsightCards";
+import NewsSection from "@/components/dashboard/NewsSection";
 import LabourHealthScore from "@/components/dashboard/LabourHealthScore";
 import JobMarketHealth from "@/components/dashboard/JobMarketHealth";
 import StoryMode from "@/components/dashboard/StoryMode";
@@ -132,7 +132,7 @@ const Index = () => {
         </section>
 
         <section>
-          {loading ? <DataInsightSkeleton /> : <DataInsightCards />}
+          {loading ? <DataInsightSkeleton /> : <NewsSection />}
         </section>
 
         <section>

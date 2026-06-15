@@ -167,7 +167,7 @@ const ForecastSection = () => {
       <div className="p-5 border-b border-border">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
-            <h2 className="text-xl font-bold text-foreground">12-Month Market Forecast</h2>
+            <h2 className="text-xl font-bold text-foreground">Malaysia Labour Market in 2027</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
               Damped Holt's Exponential Smoothing · trained on post-recovery data only
             </p>

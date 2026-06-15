@@ -27,7 +27,7 @@ const translations: Record<string, Record<Lang, string>> = {
                    bm: "Perubahan sektor, perbandingan antara negeri dan pandangan kemahiran. Pasaran buruh Malaysia, dihuraikan untuk semua orang." },
 
   // ── News ───────────────────────────────────────────────────────────────────
-  "news.title":    { en: "Labour Market Pulse",   bm: "Denyutan Pasaran Buruh"  },
+  "news.title":    { en: "News & Insight",   bm: "Berita & Trend Terkini"  },
   "news.subtitle": { en: "Google News · Malaysian sources · past 3 days",
                      bm: "Google News · Sumber Malaysia · 3 hari lepas"         },
   "news.bm25":     { en: "BM25",                  bm: "BM25"                    },
@@ -54,14 +54,14 @@ const translations: Record<string, Record<Lang, string>> = {
   // ── Section headers ────────────────────────────────────────────────────────
   "section.insights":       { en: "Market News",
                               bm: "Berita Pasaran" },
-  "section.kpi":            { en: "Key Labour Market Snapshot",
-                              bm: "Gambaran Utama Pasaran Buruh" },
+  "section.kpi":            { en: "Labour Market Overview",
+                              bm: "Tinjauan Pasaran Buruh" },
   "section.trends":         { en: "Is the job market improving or worsening?",
                               bm: "Adakah pasaran kerja semakin baik atau semakin buruk?" },
-  "section.sectors":        { en: "Where are the job opportunities?",
-                              bm: "Di mana peluang pekerjaan?" },
-  "section.occupations":    { en: "Which occupations are most critical in Malaysia?",
-                              bm: "Pekerjaan apa paling kritikal di Malaysia?" },
+  "section.sectors":        { en: "Which Sectors Employ the Most People?",
+                              bm: "Sektor Manakah yang Paling Banyak Mengambil Pekerja" },
+  "section.occupations":    { en: "What Are the High-Demand Occupations in Malaysia?",
+                              bm: "Apakah Pekerjaan Paling Diperlukan di Malaysia?" },
   "section.underemployment":{ en: "Are graduates working in the right jobs?",
                               bm: "Adakah graduan bekerja dalam bidang yang sesuai?" },
   "section.states":         { en: "How does your state compare?",
@@ -156,8 +156,8 @@ const translations: Record<string, Record<Lang, string>> = {
                                  bm: "Perubahan bulan ke bulan dalam jumlah pekerja (ribu)" },
 
   // ── Sector Chart, public-friendly framing ───────────────────────────────
-  "sectors.title": { en: "Where Malaysians Work",
-                     bm: "Di Mana Rakyat Malaysia Bekerja" },
+  "sectors.title": { en: "Employment by Sector",
+                     bm: "Pekerjaan mengikut Sektor" },
   "sectors.desc":  { en: "Out of every 100 working Malaysians, here's how the workforce splits across the three big economic sectors",
                      bm: "Dari setiap 100 rakyat Malaysia yang bekerja, beginilah pembahagian tenaga kerja antara tiga sektor ekonomi utama" },
   "sectors.totalWorkers":     { en: "total workers",    bm: "jumlah pekerja"        },
@@ -219,8 +219,8 @@ const translations: Record<string, Record<Lang, string>> = {
                                 bm: "Bagaimana bahagian setiap sektor dalam jumlah pekerjaan berubah sejak 2005" },
                                 
     // ── InDemand Chart ────────────────────────────────────────────────────────
-  "indemand.title":       { en: "Jobs Malaysia Needs Most",
-                            bm: "Pekerjaan Yang Paling Diperlukan Malaysia" },
+  "indemand.title":       { en: "Employment by Role ",
+                            bm: "Pekerjaan mengikut Peranan" },
   "indemand.subtitle":    { en: "These 66 jobs face the biggest worker shortages in Malaysia. Most have been on the list for years.",
                             bm: "66 pekerjaan ini menghadapi kekurangan pekerja terbesar di Malaysia. Kebanyakannya telah lama tersenarai." },
   "indemand.roles":       { en: "roles",                    bm: "pekerjaan"               },

@@ -320,7 +320,7 @@ exports.handler = async (event) => {
 
       const margin   = bestScore - secondScore;
       const relevant = bestScore >= MIN_SCORE && margin >= MIN_MARGIN;
-
+     
       return { ...a, topic: relevant ? bestTopic : null, bm25Score: bestScore, relevant };
     });
 
