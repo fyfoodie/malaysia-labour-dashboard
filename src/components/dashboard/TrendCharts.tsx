@@ -64,27 +64,29 @@ const TrendCharts = () => {
       : national.filter((d: any) => new Date(d.date).getFullYear() === selectedYear)
   , [selectedYear, national]);
 
+  // Known DOSM census-rebasing breaks. MoM change across these is a methodology
+  // artifact, not a real economic change, so we suppress it.
+  const CENSUS_BREAKS = new Set(["2024-01-01", "2025-12-01", "2026-01-01"]);
+
   const chartData = useMemo(() =>
     filtered.map((d: any, i: number) => {
       const prev = i > 0 ? filtered[i - 1] : null;
-      // DOSM `employed` is in thousands of persons (e.g. 16,403 = 16.4 million)
-      // MoM change is therefore also in thousands of persons
-      const changeThou = prev ? +(d.employed - prev.employed).toFixed(1) : 0;
+      // Suppress change at census breaks (rebasing causes a fake cliff)
+      const isBreak = CENSUS_BREAKS.has(d.date);
+      const changeThou = (prev && !isBreak) ? +(d.employed - prev.employed).toFixed(1) : null;
       return {
-        label:      (() => {
+        label: (() => {
           const dt = new Date(d.date);
           const mon = dt.toLocaleDateString("en-MY", { month: "short" });
           const yr  = dt.getFullYear().toString().slice(2);
           return `${mon} '${yr}`;
         })(),
-        lf:         +(d.lf       / 1_000).toFixed(2),  // thousands → millions
-        employed:   +(d.employed / 1_000).toFixed(2),  // thousands → millions
-        uRate:      d.u_rate ?? 0,
-        pRate:      d.p_rate ?? 0,
-        // Keep change in thousands (matches DOSM unit) — labelled clearly in UI
-        change:     changeThou,
-        // Flag extreme COVID months so we can annotate them
-        isCovid:    Math.abs(changeThou) > 200,
+        lf:        +(d.lf       / 1_000).toFixed(2),
+        employed:  +(d.employed / 1_000).toFixed(2),
+        uRate:     d.u_rate ?? 0,
+        pRate:     d.p_rate ?? 0,
+        change:    changeThou,
+        isCovid:   changeThou != null && Math.abs(changeThou) > 200,
       };
     })
   , [filtered]);
@@ -185,6 +187,9 @@ const TrendCharts = () => {
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium bg-muted text-muted-foreground border border-border">
               Unit: '000 persons (thousands)
             </span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium bg-muted text-muted-foreground border border-border">
+              Gaps = DOSM census rebasing (not real job loss)
+            </span>
           </div>
         )}
 
@@ -204,7 +209,16 @@ const TrendCharts = () => {
                 <XAxis dataKey="label" tick={tickStyle} interval={xInterval} angle={-30} textAnchor="end" height={50} />
                 <YAxis tick={tickStyle} tickFormatter={v => `${v}%`} />
                 <Tooltip contentStyle={tooltipStyle} labelStyle={labelStyle}
-                  formatter={(v: number) => [`${v}%`, "Unemployment Rate"]} />
+  formatter={(v: number | null) => {
+    if (v == null) return ["No comparable data (methodology break)", ""];
+    const isGain = v >= 0;
+    const label  = isGain ? "Jobs Added" : "Jobs Lost";
+    const display = Math.abs(v) >= 1000
+      ? `${isGain ? "+" : "−"}${(Math.abs(v) / 1000).toFixed(2)}M persons`
+      : `${isGain ? "+" : "−"}${Math.abs(v).toFixed(1)}k persons`;
+    return [display, label];
+  }}
+/>
                 <ReferenceLine y={3.3} stroke="hsl(var(--muted-foreground))" strokeDasharray="5 5"
                   label={{ value: "Pre-COVID avg 3.3%", fill: "hsl(var(--muted-foreground))", fontSize: 9, position: "insideTopRight" }} />
                 <Area type="monotone" dataKey="uRate" name="Unemployment Rate"

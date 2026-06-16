@@ -78,21 +78,29 @@ const translations: Record<string, Record<Lang, string>> = {
   "footer.updated": { en: "Updated monthly",    bm: "Dikemaskini setiap bulan" },
   "footer.built":   { en: "Built for Malaysia", bm: "Dibina untuk Malaysia"    },
 
-  // ── Labour Health Score ───────────────────────────────────────────────────
-  "health.title":   { en: "Labour Health Index", bm: "Indeks Kesihatan Buruh" },
-  "health.outOf":   { en: "out of 100",           bm: "daripada 100"           },
-  "health.strong":     { en: "Strong",     bm: "Kukuh"        },
-  "health.healthy":    { en: "Healthy",    bm: "Sihat"        },
-  "health.recovering": { en: "Recovering", bm: "Sedang Pulih" },
-  "health.weak":       { en: "Weak",       bm: "Lemah"        },
-  "health.strong.desc":     { en: "Exceptionally low unemployment and strong workforce participation.",
-                              bm: "Kadar pengangguran sangat rendah dan penyertaan tenaga kerja yang kukuh." },
-  "health.healthy.desc":    { en: "Solid labour market with steady employment growth.",
-                              bm: "Pasaran buruh yang kukuh dengan pertumbuhan pekerjaan yang stabil." },
-  "health.recovering.desc": { en: "Gradual improvements across key labour indicators.",
-                              bm: "Penambahbaikan beransur-ansur dalam petunjuk buruh utama." },
-  "health.weak.desc":       { en: "Labour market facing elevated unemployment or low participation.",
-                              bm: "Pasaran buruh menghadapi kadar pengangguran tinggi atau penyertaan yang rendah." },
+// ── Labour Health Index v2 keys ─────────────────────────────────────────────
+// ADD these to LanguageContext.tsx. They extend the existing health.* block.
+// Keep your existing health.title, health.outOf, health.strong/healthy/etc + .desc keys.
+
+  "health.breakdown":  { en: "Indicator Breakdown", bm: "Pecahan Petunjuk" },
+  "health.show":       { en: "Show",  bm: "Tunjuk"     },
+  "health.hide":       { en: "Hide",  bm: "Sembunyi"   },
+  "health.coverage":   { en: "Score based on {pct}% of indicators (rest awaiting data)",
+                         bm: "Skor berdasarkan {pct}% petunjuk (selebihnya menunggu data)" },
+
+  // Methodology modal
+  "health.method.title":  { en: "How is this index calculated?",
+                            bm: "Bagaimana indeks ini dikira?" },
+  "health.method.intro":  { en: "The Labour Health Index is a weighted average of 7 official labour indicators. Each indicator is first rescaled to a 0–100 sub-score, then combined using the weights below.",
+                            bm: "Indeks Kesihatan Buruh ialah purata berwajaran 7 petunjuk buruh rasmi. Setiap petunjuk diskalakan semula kepada sub-skor 0–100, kemudian digabungkan menggunakan wajaran di bawah." },
+  "health.method.step2":  { en: "Each indicator has a floor (scores 0) and ceiling (scores 100), calibrated against Malaysia's real range from 2010 to 2026. A value at the ceiling is the best realistically seen; at the floor, the worst.",
+                            bm: "Setiap petunjuk mempunyai paras bawah (skor 0) dan paras atas (skor 100), ditentukur mengikut julat sebenar Malaysia dari 2010 hingga 2026. Nilai pada paras atas adalah terbaik yang pernah dicapai; pada paras bawah, terburuk." },
+  "health.method.weight": { en: "weight", bm: "wajaran" },
+  "health.method.now":    { en: "Now", bm: "Kini" },
+  "health.method.caveat": { en: "Weights and bands are our editorial choices for a general overview, not an official DOSM or ILO index. Indicators marked 'est.' are awaiting a live data feed and are excluded from the score until then.",
+                            bm: "Wajaran dan julat adalah pilihan editorial kami untuk gambaran umum, bukan indeks rasmi DOSM atau ILO. Petunjuk bertanda 'est.' sedang menunggu suapan data langsung dan dikecualikan daripada skor sehingga itu." },
+  "health.method.sources":{ en: "Sources: DOSM Labour Force Survey (monthly), DOSM Household Income Survey (HIES), DOSM Skills-Related Underemployment series.",
+                            bm: "Sumber: Tinjauan Tenaga Buruh DOSM (bulanan), Tinjauan Pendapatan Isi Rumah DOSM (HIES), siri Ketidakpadanan Kemahiran DOSM." },
 
   // ── Data Insight Cards ────────────────────────────────────────────────────
   "insight.didYouKnow": { en: "DID YOU KNOW?",          bm: "TAHUKAH ANDA?"            },
