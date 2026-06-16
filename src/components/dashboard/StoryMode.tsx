@@ -208,7 +208,7 @@ const StoryMode = () => {
           : "Malaysia's Job Market Today",
         body: lang === "bm"
           ? `Setakat ${latestDate}, Malaysia mempunyai ${fmtM(lfSize)} orang dalam tenaga kerja dengan kadar pekerjaan ${fmt(empRate)}%. ${fmtM(empSize)} rakyat Malaysia bekerja aktif. Kadar pengangguran kini pada ${fmt(uRate)}%, hampir paras terendah bersejarah. Pasaran buruh Malaysia adalah antara yang paling resiliens di Asia Tenggara.`
-          : `As of ${latestDate}, Malaysia has ${fmtM(lfSize)} people in its labour force with an employment rate of ${fmt(empRate)}%. ${fmtM(empSize)} Malaysians actively working. The unemployment rate sits at ${fmt(uRate)}%, near a historic low. Malaysia's labour market ranks among the most resilient in Southeast Asia.`,
+          : `As of ${latestDate}, Malaysia has ${fmtM(lfSize)} persons in its labour force with an employment rate of ${fmt(empRate)}%. ${fmtM(empSize)} Malaysians actively working. The unemployment rate returned to ${fmt(uRate)}%, near a historic low. Malaysia's labour market ranks among the most resilient in Southeast Asia.`,
         stat: {
           value: `${fmt(empRate)}%`,
           label: lang === "bm" ? "Kadar Pekerjaan" : "Employment Rate",
